@@ -1,307 +1,4 @@
-from pathlib import Path
-import json
-
-places = {
-    "Viesnīca OAZ / Golema": {"lat": 41.2500, "lon": 19.5230, "icon": "🏨"},
-    "Tirānas lidosta": {"lat": 41.4147, "lon": 19.7206, "icon": "✈️"},
-    "Kruja": {"lat": 41.5095, "lon": 19.7920, "icon": "🏰"},
-    "Rodona rags": {"lat": 41.5820, "lon": 19.4450, "icon": "🌊"},
-    "Llogaras pāreja": {"lat": 40.1960, "lon": 19.5920, "icon": "⛰️"},
-    "Maja e Qorres zona": {"lat": 40.2050, "lon": 19.6040, "icon": "🥾"},
-    "Radhimë / Orikum": {"lat": 40.3660, "lon": 19.4930, "icon": "🏖️"},
-    "Vlorë niršanas vieta": {"lat": 40.4660, "lon": 19.4890, "icon": "🤿"},
-    "Karaburun-Sazan zona": {"lat": 40.4350, "lon": 19.3000, "icon": "🐠"},
-    "Berata": {"lat": 40.7058, "lon": 19.9522, "icon": "🏘️"},
-    "Bogovë ūdenskritums": {"lat": 40.5640, "lon": 20.1320, "icon": "💧"},
-    "Koman ezera piestātne": {"lat": 42.1030, "lon": 19.8230, "icon": "🚤"},
-    "Šalas upe": {"lat": 42.1850, "lon": 19.7790, "icon": "💦"},
-}
-
-days = [
-    {
-        "id": "arrival",
-        "date": "03.07. piektdiena",
-        "title": "Ierašanās + Golemas pludmale",
-        "color": "#475569",
-        "dash": "8 8",
-        "weight": 7,
-        "bend": -0.20,
-        "points": ["Tirānas lidosta", "Viesnīca OAZ / Golema"],
-        "summary": "Nakts lidojums, transfērs uz Golemu, viesnīca un mierīga atpūta pie jūras.",
-        "drive": "Tikai grupas transfērs",
-        "effort": "Viegli",
-        "emoji": "✈️",
-        "schedule": [
-            {"time": "02.07. 22:15–23:15", "title": "Tikšanās Rīgas lidostā", "place": "RIX", "note": "IMPRO grupa pie airBaltic biroja/kasēm. Nodod bagāžu."},
-            {"time": "02.07. 23:15–00:15", "title": "Drošība + iekāpšana", "place": "RIX", "note": "Paturi peldlietas/snorkeli rokas bagāžā, ja vajag."},
-            {"time": "00:15–01:55", "title": "Lidojums Rīga → Tirāna", "place": "Lidmašīna", "note": "Guli, cik vari."},
-            {"time": "02:00–02:30", "title": "Pārgājiens uz lidostas viesnīcu", "place": "Tirānas lidosta", "note": "Nekādu gudro plānu. Vienkārši gulēt."},
-            {"time": "02:30–09:00", "title": "Miegs", "place": "Lidostas viesnīca", "note": "Atkopšanās pēc vēlā lidojuma."},
-            {"time": "09:00–10:00", "title": "Brokastis + izrakstīšanās", "place": "Lidostas viesnīca", "note": "Ūdens, SIM/eSIM, ja vajag."},
-            {"time": "~10:00–13:00", "title": "Transfērs uz Golemu", "place": "Tirāna → Durresa → Hotel OAZ", "note": "Īsa Durresas apskate, tad viesnīca."},
-            {"time": "13:00–15:00", "title": "Iekārtošanās + pusdienas", "place": "Hotel OAZ", "note": "Pludmales dvieļi jāņem pašiem."},
-            {"time": "15:00–17:00", "title": "Pludmale / atpūta", "place": "Golema", "note": "Viegls peldiņš, bez braukšanas."},
-            {"time": "17:00–18:00", "title": "Auto noma / loģistika", "place": "Golema", "note": "Ideāli: auto piegāde uz viesnīcu no 04.07. rīta."},
-            {"time": "18:00–20:00", "title": "Vakariņas + pastaiga", "place": "Golemas promenāde", "note": "Agrs vakars ir labāks par zombija režīmu."},
-            {"time": "20:00–22:00", "title": "Sagatavošanās", "place": "Hotel OAZ", "note": "Ūdens, saules krēms, snorkelis, apavi, powerbank."},
-            {"time": "22:00–23:59", "title": "Miegs", "place": "Hotel OAZ", "note": "Nākamā diena ir pirmais pašbrauciens."},
-        ],
-    },
-    {
-        "id": "kruje",
-        "date": "04.07. sestdiena",
-        "title": "Kruja + Rodona rags",
-        "color": "#ef4444",
-        "dash": "",
-        "weight": 6,
-        "bend": 0.16,
-        "points": ["Viesnīca OAZ / Golema", "Kruja", "Rodona rags", "Viesnīca OAZ / Golema"],
-        "summary": "Krujas vecais tirgus un pils, pēc tam jūras skati un iespējama snorkelēšana Rodona ragā.",
-        "drive": "Vidējs pašbrauciens",
-        "effort": "Viegli / vidēji",
-        "emoji": "🏰",
-        "schedule": [
-            {"time": "07:30–08:30", "title": "Brokastis + auto", "place": "Hotel OAZ", "note": "Pārbaudi degvielu, riepas, nobildē auto stāvokli."},
-            {"time": "08:30–10:00", "title": "Brauciens uz Kruju", "place": "Golema → Kruja", "note": "~1h15–1h30. Pirmā braukšanas diena — mierīgi."},
-            {"time": "10:00–12:30", "title": "Krujas tirgus + pils", "place": "Kruja", "note": "Vecais tirgus, pils zona, skati, kafija."},
-            {"time": "12:30–13:30", "title": "Pusdienas", "place": "Kruja", "note": "Vieglākas pusdienas, ja vēl gribat snorkelēt."},
-            {"time": "13:30–15:00", "title": "Brauciens uz Rodona ragu", "place": "Kruja → Rodona rags", "note": "~1h15–1h30. Pie raga ceļi var būt lēnāki."},
-            {"time": "15:00–17:30", "title": "Rodona rags", "place": "Rodona rags", "note": "Pils / baznīca / klinšaina piekraste. Snorkelēt tikai mierīgā jūrā."},
-            {"time": "17:30–19:00", "title": "Brauciens atpakaļ", "place": "Rodona rags → Golema", "note": "~1h15–1h30. Ja esi noguris, paņem pauzi."},
-            {"time": "19:00–21:00", "title": "Vakariņas + pludmale", "place": "Golema", "note": "Mierīgs vakars."},
-            {"time": "21:00–22:00", "title": "Pārgājiena sagatavošana", "place": "Hotel OAZ", "note": "3L ūdens katram, elektrolīti, cepure, saules krēms, normāli apavi."},
-            {"time": "22:00–23:59", "title": "Miegs", "place": "Hotel OAZ", "note": "Nākamā diena būs smaga."},
-        ],
-    },
-    {
-        "id": "llogara",
-        "date": "05.07. svētdiena",
-        "title": "Smags pārgājiens: Llogara / Maja e Qorres",
-        "color": "#16a34a",
-        "dash": "",
-        "weight": 6,
-        "bend": -0.12,
-        "points": ["Viesnīca OAZ / Golema", "Llogaras pāreja", "Maja e Qorres zona", "Radhimë / Orikum", "Viesnīca OAZ / Golema"],
-        "summary": "Kalnu pārgājiens ar lieliem skatiem. Pēc tam mierīga pelde pie Radhimë / Orikum.",
-        "drive": "Garš pašbrauciens",
-        "effort": "Smagi",
-        "emoji": "⛰️",
-        "schedule": [
-            {"time": "05:30–06:00", "title": "Celšanās", "place": "Hotel OAZ", "note": "Ātra ēšana, kafija, piepildi pudeles."},
-            {"time": "06:00–08:45", "title": "Brauciens uz Llogaru", "place": "Golema → Llogaras pāreja", "note": "~2h30–3h ar degvielas/kafijas pauzi."},
-            {"time": "08:45–09:15", "title": "Pārgājiena starts", "place": "Llogaras pāreja", "note": "Apavi, saules krēms, maršruts, laikapstākļu pārbaude."},
-            {"time": "09:15–14:30", "title": "Maja e Qorres pārgājiens", "place": "Llogara / Maja e Qorres", "note": "Apm. 9 km / ~1000 m kāpums. Karsts, atklāts, maz ūdens. Ja laiks slikts — griezties atpakaļ."},
-            {"time": "14:30–15:30", "title": "Pusdienas + atpūta", "place": "Llogaras pāreja", "note": "Ja esat beigti, izlaidiet jūras pieturu un brauciet mierīgi atpakaļ."},
-            {"time": "15:30–16:00", "title": "Brauciens līdz jūrai", "place": "Llogara → Radhimë / Orikum", "note": "~30 min. Nesteidzies lejup pa kalnu ceļu."},
-            {"time": "16:00–17:30", "title": "Pelde / snorkelis", "place": "Radhimë / Orikum", "note": "Tikai mierīga pelde. Bez varoņošanas pēc smaga pārgājiena."},
-            {"time": "17:30–20:15", "title": "Brauciens uz Golemu", "place": "Radhimë / Orikum → Hotel OAZ", "note": "~2h30–3h. Pauze, ja vajag."},
-            {"time": "20:15–21:30", "title": "Vakariņas + duša", "place": "Golema", "note": "Atkopšanās."},
-            {"time": "21:30–23:59", "title": "Miegs", "place": "Hotel OAZ", "note": "Nekāds alkohola maratons pirms niršanas."},
-        ],
-    },
-    {
-        "id": "scuba",
-        "date": "06.07. pirmdiena",
-        "title": "Niršana / snorkelēšana: Karaburun-Sazan",
-        "color": "#0284c7",
-        "dash": "",
-        "weight": 6,
-        "bend": 0.10,
-        "points": ["Viesnīca OAZ / Golema", "Vlorë niršanas vieta", "Karaburun-Sazan zona", "Vlorë niršanas vieta", "Viesnīca OAZ / Golema"],
-        "summary": "Iesācēju niršanas diena no Vlorë puses uz Karaburun-Sazan zonu.",
-        "drive": "Vidēji garš pašbrauciens",
-        "effort": "Vidēji",
-        "emoji": "🤿",
-        "schedule": [
-            {"time": "06:15–06:45", "title": "Brokastis + soma", "place": "Hotel OAZ", "note": "Peldlietas, dvieļi, dokumenti, ūdens. Jums vajag Discover Scuba / Try Dive, nevis sertificētu nirēju programmu."},
-            {"time": "06:45–08:45", "title": "Brauciens uz niršanas vietu", "place": "Golema → Vlorë / Radhimë / Orikum", "note": "~2h–2h30. Precīzu piestātni apstiprina operators."},
-            {"time": "08:45–09:30", "title": "Reģistrācija + ekipējums", "place": "Niršanas centrs / marina", "note": "Papīri, izmēri, drošības instruktāža."},
-            {"time": "09:30–13:00", "title": "Laiva + pirmā niršana / snorkelis", "place": "Karaburun-Sazan zona", "note": "Labākā reālistiskā zona no Golemas: Vlorë līcis, Sazan, Karaburun."},
-            {"time": "13:00–14:00", "title": "Pusdienas / virsmas pauze", "place": "Laiva vai pludmale", "note": "Ūdens, ēdiens, bez alkohola."},
-            {"time": "14:00–16:30", "title": "Otrā aktivitāte", "place": "Sazan / Karaburun / Haxhi Ali alas zona", "note": "Otrā iesācēju niršana vai snorkelēšana — atkarīgs no operatora un jūras."},
-            {"time": "16:30–17:30", "title": "Atkopšanās", "place": "Vlorë / marina", "note": "Noskalo ekipējumu, uzkoda, īsa pastaiga."},
-            {"time": "17:30–19:45", "title": "Brauciens uz Golemu", "place": "Vlorë → Golema", "note": "~2h–2h30. Ja saules/jūras nogurums — pauze."},
-            {"time": "19:45–21:30", "title": "Vakariņas", "place": "Golema", "note": "Viegls vakars."},
-            {"time": "21:30–23:59", "title": "Miegs", "place": "Hotel OAZ", "note": "Nākamā diena ir mierīgāka."},
-        ],
-    },
-    {
-        "id": "berat",
-        "date": "07.07. otrdiena",
-        "title": "Berata + Bogovë ūdenskritums",
-        "color": "#f59e0b",
-        "dash": "",
-        "weight": 6,
-        "bend": 0.13,
-        "points": ["Viesnīca OAZ / Golema", "Berata", "Bogovë ūdenskritums", "Viesnīca OAZ / Golema"],
-        "summary": "Beratas vecpilsēta un pils, pusdienas, pēc tam ūdenskrituma pelde.",
-        "drive": "Vidēji garš pašbrauciens",
-        "effort": "Vidēji",
-        "emoji": "🏘️",
-        "schedule": [
-            {"time": "07:30–08:15", "title": "Brokastis", "place": "Hotel OAZ", "note": "Peldlietas, viegli apavi, ūdens."},
-            {"time": "08:15–10:00", "title": "Brauciens uz Beratu", "place": "Golema → Berata", "note": "~1h30–1h45."},
-            {"time": "10:00–12:30", "title": "Beratas pils / Kala", "place": "Berata", "note": "Pils zona, skatu punkti, vecās ielas."},
-            {"time": "12:30–14:00", "title": "Pusdienas + pastaiga", "place": "Mangalem + Gorica tilts", "note": "Vecpilsēta bez garlaicīgas muzeju pārdozēšanas."},
-            {"time": "14:00–15:15", "title": "Brauciens uz ūdenskritumu", "place": "Berata → Bogovë", "note": "~1h–1h15. Ja ceļš/karstums kaitina, šo daļu var izlaist."},
-            {"time": "15:15–17:15", "title": "Bogovë ūdenskritums", "place": "Bogovë", "note": "Īsa pastaiga, pelde, bildes."},
-            {"time": "17:15–19:45", "title": "Brauciens uz Golemu", "place": "Bogovë / Berata → Golema", "note": "~2h15–2h45. Vakarā pārbaudi degvielu."},
-            {"time": "19:45–21:30", "title": "Vakariņas + sagatavošanās", "place": "Golema", "note": "Sagatavoties Koman/Šala ekskursijai. Jānoskaidro precīzs izbraukšanas laiks."},
-            {"time": "21:30–23:59", "title": "Miegs", "place": "Hotel OAZ", "note": "Koman diena būs gara."},
-        ],
-    },
-    {
-        "id": "koman",
-        "date": "08.07. trešdiena",
-        "title": "Koman ezers + Šalas upe",
-        "color": "#7c3aed",
-        "dash": "",
-        "weight": 7,
-        "bend": -0.10,
-        "points": ["Viesnīca OAZ / Golema", "Koman ezera piestātne", "Šalas upe", "Koman ezera piestātne", "Viesnīca OAZ / Golema"],
-        "summary": "Organizētā IMPRO ekskursija ar autobusu un laivu uz Koman ezeru un Šalas upi.",
-        "drive": "Organizēta ekskursija, gara diena",
-        "effort": "Vidēji",
-        "emoji": "🚤",
-        "schedule": [
-            {"time": "05:00–05:30", "title": "Celšanās", "place": "Hotel OAZ", "note": "Ūdens, brokastu paka, sausā soma. Auto nav vajadzīgs."},
-            {"time": "05:30–09:30", "title": "Grupas transfērs", "place": "Golema → Koman zona", "note": "Precīzs laiks jāapstiprina ar gidu. PDF dienas ilgums ~12h."},
-            {"time": "09:30–11:00", "title": "Laiva pa Koman ezeru", "place": "Koman ezers", "note": "Fjordiem līdzīgi skati ceļā uz Šalas upi."},
-            {"time": "11:00–14:30", "title": "Šalas upe", "place": "Šalas upe", "note": "Pelde, bildes, pusdienas, slēptās pludmales zona. Ūdens apavi noder."},
-            {"time": "14:30–16:00", "title": "Laiva atpakaļ", "place": "Šalas upe → Koman", "note": "Operatora laiki var nobīdīties."},
-            {"time": "16:00–19:30", "title": "Transfērs uz Golemu", "place": "Koman → Hotel OAZ", "note": "Neplānot pārāk agras vakariņas."},
-            {"time": "19:30–21:00", "title": "Vakariņas + duša", "place": "Golema", "note": "Visticamāk diena būs izpumpējusi."},
-            {"time": "21:00–23:59", "title": "Atpūta / miegs", "place": "Hotel OAZ", "note": "Nākamā diena ir mierīga."},
-        ],
-    },
-    {
-        "id": "airport",
-        "date": "09.07. ceturtdiena",
-        "title": "Pēdējā pludmale + lidostas transfērs",
-        "color": "#ec4899",
-        "dash": "14 8",
-        "weight": 8,
-        "bend": 0.30,
-        "points": ["Viesnīca OAZ / Golema", "Tirānas lidosta"],
-        "summary": "Mierīga pēdējā diena pie jūras, mantu sakārtošana un vēlais transfērs uz Tirānas lidostu.",
-        "drive": "Tikai grupas transfērs",
-        "effort": "Viegli",
-        "emoji": "✈️",
-        "schedule": [
-            {"time": "08:30–10:00", "title": "Brokastis / izgulēšanās", "place": "Hotel OAZ", "note": "Nekādu varoņplānu pirms nakts lidojuma."},
-            {"time": "10:00–13:00", "title": "Pēdējā pludmale", "place": "Hotel OAZ pludmale", "note": "Pelde/snorkelis mierīgā režīmā. Naktī lidojums."},
-            {"time": "13:00–14:30", "title": "Pusdienas", "place": "Golema", "note": "Sāc kravāties pirms slinkums uzvar."},
-            {"time": "14:30–17:00", "title": "Brīvais laiks", "place": "Golema vai Durresa", "note": "Noklusējums: pludmale/diendusa. Durresa tikai, ja vēl ir auto un tiešām gribas."},
-            {"time": "17:00–18:30", "title": "Auto nodošana + kravāšanās", "place": "Hotel OAZ", "note": "Nobildē auto stāvokli pie nodošanas."},
-            {"time": "18:30–20:30", "title": "Pēdējās vakariņas", "place": "Golema", "note": "Dokumenti un pases pa rokai."},
-            {"time": "20:30–23:00", "title": "Buferis", "place": "Hotel OAZ", "note": "Duša, telefoni, somas, snorkelis/flipperi nav palikuši žāvēties."},
-            {"time": "~23:30–00:30", "title": "Transfērs uz lidostu", "place": "Golema → Tirānas lidosta", "note": "PDF: izrakstīšanās/transfērs ap 23:30."},
-            {"time": "10.07. 00:30–01:45", "title": "Reģistrācija / drošība", "place": "Tirānas lidosta", "note": "Ūdens/uzkoda pēc drošības kontroles."},
-            {"time": "10.07. 01:45–02:35", "title": "Iekāpšanas buferis", "place": "Lidostas vārti", "note": "Pase pa rokai."},
-            {"time": "10.07. 02:35–06:15", "title": "Lidojums Tirāna → Rīga", "place": "Lidmašīna", "note": "Ceļojums beidzies."},
-        ],
-    },
-]
-
-checklists = [
-    {
-        "title": "Rezervēt / apstiprināt",
-        "items": [
-            "08.07. Koman ezers + Šalas upe ekskursija rezervēta un apmaksāta",
-            "Precīzs 08.07. izbraukšanas laiks apstiprināts ar gidu",
-            "Auto noma rezervēta no 04.07. rīta līdz 09.07. vakaram",
-            "Auto piegādes / saņemšanas vieta pie Hotel OAZ apstiprināta",
-            "Auto nomas depozīts, apdrošināšana un degvielas politika pārbaudīta",
-            "Otrais vadītājs pievienots, ja vajag",
-            "06.07. Discover Scuba / Try Dive rezervēts",
-            "Niršanas tikšanās vieta, cena, ekipējums un atcelšanas noteikumi apstiprināti",
-            "Noskaidrots, vai nenirēji var braukt līdzi laivā kā snorkelētāji",
-            "Offline kartes lejupielādētas telefonā",
-        ],
-    },
-    {
-        "title": "Dokumenti / nauda / telefoni",
-        "items": [
-            "Pase derīga vismaz 6 mēnešus pēc ceļojuma beigām",
-            "Lidojuma informācija saglabāta telefonā",
-            "Viesnīcas informācija saglabāta telefonā",
-            "Ceļojuma apdrošināšanas info saglabāts",
-            "Auto nomas rezervācija saglabāta",
-            "Niršanas rezervācija saglabāta",
-            "Bankas karte + rezerves karte",
-            "Nedaudz skaidras naudas EUR / ALL",
-            "Revolut / bankas lietotne strādā ārpus Latvijas",
-            "Telefona lādētājs + kabelis",
-            "Powerbank uzlādēts",
-            "eSIM / roaming plāns pārbaudīts",
-        ],
-    },
-    {
-        "title": "Pludmale / snorkelis / laiva",
-        "items": [
-            "Pludmales dvielis",
-            "Peldkostīms / peldšorti",
-            "Snorkeļa maska",
-            "Trubiņa",
-            "Pleznas",
-            "Ūdens apavi",
-            "Sausā soma telefonam / dokumentiem",
-            "Saulesbrilles",
-            "Cepure",
-            "Saules krēms SPF 50",
-            "After-sun / alveja",
-            "Mazs dvielis vai lupatiņa somā",
-        ],
-    },
-    {
-        "title": "Pārgājiens / aktīvās dienas",
-        "items": [
-            "Pārgājiena apavi vai ļoti labi sporta apavi",
-            "Viegls pārgājiena apģērbs",
-            "Mazā mugursoma",
-            "Ūdens pudeles vismaz 3L katram Llogara dienai",
-            "Elektrolīti",
-            "Enerģijas batoniņi / uzkodas",
-            "Plāksteri tulznām",
-            "Aptieciņa ar pamata zālēm",
-            "Lietus / vēja jaka, ja prognoze izskatās slikta",
-            "Google Maps / Organic Maps offline maršruti",
-        ],
-    },
-    {
-        "title": "Ikdienas soma",
-        "items": [
-            "Telefons",
-            "Maks / karte / skaidra nauda",
-            "Pase vai pases kopija",
-            "Ūdens",
-            "Saules krēms",
-            "Saulesbrilles",
-            "Austiņas",
-            "Mitrās salvetes",
-            "Papīra salvetes",
-            "Roku dezinfekcija",
-            "Pretodu līdzeklis",
-            "Maisiņš slapjām drēbēm",
-        ],
-    },
-    {
-        "title": "Pirms izbraukšanas no mājām",
-        "items": [
-            "Pases paņemtas",
-            "Lādētāji paņemti",
-            "Powerbank paņemts",
-            "Snorkeļa komplekts paņemts",
-            "Pludmales dvieļi paņemti",
-            "Mājās izslēgts nevajadzīgais",
-            "Atkritumi izmesti",
-            "Atslēgas paņemtas",
-            "Ceļojuma fails / karte atveras telefonā",
-        ],
-    },
-]
-
-html = f"""<!doctype html>
+<!doctype html>
 <html lang="lv">
 <head>
   <meta charset="utf-8">
@@ -310,144 +7,144 @@ html = f"""<!doctype html>
   <meta name="theme-color" content="#111827">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
-    .leaflet-container{{overflow:hidden;position:relative;outline-style:none;background:#ddd;font:12px/1.5 Arial,sans-serif}}
-    .leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{{position:absolute;left:0;top:0}}
-    .leaflet-map-pane,.leaflet-marker-pane,.leaflet-shadow-pane,.leaflet-tile-pane,.leaflet-overlay-pane,.leaflet-popup-pane,.leaflet-tooltip-pane{{position:absolute;left:0;top:0}}
-    .leaflet-tile{{user-select:none;-webkit-user-drag:none;visibility:hidden}}
-    .leaflet-tile-loaded{{visibility:inherit}}
-    .leaflet-tile-pane{{z-index:200}} .leaflet-overlay-pane{{z-index:400}} .leaflet-shadow-pane{{z-index:500}} .leaflet-marker-pane{{z-index:600}} .leaflet-tooltip-pane{{z-index:650}} .leaflet-popup-pane{{z-index:700}}
-    .leaflet-control{{position:relative;z-index:800;pointer-events:auto}} .leaflet-top,.leaflet-bottom{{position:absolute;z-index:1000;pointer-events:none}} .leaflet-top{{top:0}} .leaflet-right{{right:0}} .leaflet-bottom{{bottom:0}} .leaflet-left{{left:0}}
-    .leaflet-control-zoom{{margin-left:12px;margin-top:12px;border:2px solid rgba(0,0,0,.2);border-radius:8px;background:#fff;overflow:hidden}}
-    .leaflet-control-zoom a{{display:block;width:30px;height:30px;line-height:30px;text-align:center;text-decoration:none;color:#000;background:#fff;border-bottom:1px solid #ccc;font:bold 20px Arial}}
-    .leaflet-control-zoom a:last-child{{border-bottom:none}}
-    .leaflet-tooltip{{position:absolute;padding:6px;background:#fff;border:1px solid #fff;border-radius:4px;color:#222;white-space:nowrap;user-select:none;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.35)}}
+    .leaflet-container{overflow:hidden;position:relative;outline-style:none;background:#ddd;font:12px/1.5 Arial,sans-serif}
+    .leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}
+    .leaflet-map-pane,.leaflet-marker-pane,.leaflet-shadow-pane,.leaflet-tile-pane,.leaflet-overlay-pane,.leaflet-popup-pane,.leaflet-tooltip-pane{position:absolute;left:0;top:0}
+    .leaflet-tile{user-select:none;-webkit-user-drag:none;visibility:hidden}
+    .leaflet-tile-loaded{visibility:inherit}
+    .leaflet-tile-pane{z-index:200} .leaflet-overlay-pane{z-index:400} .leaflet-shadow-pane{z-index:500} .leaflet-marker-pane{z-index:600} .leaflet-tooltip-pane{z-index:650} .leaflet-popup-pane{z-index:700}
+    .leaflet-control{position:relative;z-index:800;pointer-events:auto} .leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none} .leaflet-top{top:0} .leaflet-right{right:0} .leaflet-bottom{bottom:0} .leaflet-left{left:0}
+    .leaflet-control-zoom{margin-left:12px;margin-top:12px;border:2px solid rgba(0,0,0,.2);border-radius:8px;background:#fff;overflow:hidden}
+    .leaflet-control-zoom a{display:block;width:30px;height:30px;line-height:30px;text-align:center;text-decoration:none;color:#000;background:#fff;border-bottom:1px solid #ccc;font:bold 20px Arial}
+    .leaflet-control-zoom a:last-child{border-bottom:none}
+    .leaflet-tooltip{position:absolute;padding:6px;background:#fff;border:1px solid #fff;border-radius:4px;color:#222;white-space:nowrap;user-select:none;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 
-    *{{box-sizing:border-box;-webkit-tap-highlight-color:transparent}}
-    html,body,#map{{height:100%;height:100dvh;width:100%;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f7}}
-    #map{{z-index:1}}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body,#map{height:100%;height:100dvh;width:100%;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f7}
+    #map{z-index:1}
 
-    :root{{
+    :root{
       --dark:rgba(17,24,39,.95);
       --soft:rgba(255,255,255,.16);
       --shadow:0 12px 32px rgba(0,0,0,.28);
       --accent:#111827;
-    }}
+    }
 
-    .menu-btn,.checklist-btn{{
+    .menu-btn,.checklist-btn{
       position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));z-index:1400;
       border:0;border-radius:999px;background:var(--dark);color:white;box-shadow:var(--shadow);
       padding:12px 16px;font-weight:800;font-size:15px;min-height:48px;cursor:pointer;display:none;
-    }}
-    .menu-btn{{left:14px}}
-    .checklist-btn{{right:14px}}
+    }
+    .menu-btn{left:14px}
+    .checklist-btn{right:14px}
 
-    .hint{{
+    .hint{
       position:fixed;left:14px;right:14px;top:calc(14px + env(safe-area-inset-top));z-index:1350;
       background:rgba(255,255,255,.96);color:#111827;border-radius:14px;padding:10px 42px 10px 12px;
       box-shadow:var(--shadow);font-size:14px;line-height:1.3;max-width:620px;
-    }}
-    .hint button{{position:absolute;right:6px;top:6px;border:0;background:#e5e7eb;border-radius:999px;width:30px;height:30px;font-size:20px;line-height:1;cursor:pointer}}
+    }
+    .hint button{position:absolute;right:6px;top:6px;border:0;background:#e5e7eb;border-radius:999px;width:30px;height:30px;font-size:20px;line-height:1;cursor:pointer}
 
-    .drawer{{
+    .drawer{
       position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:1500;
       background:var(--dark);color:white;border-radius:18px;box-shadow:var(--shadow);max-height:min(78dvh,680px);
       transform:translateY(calc(100% + 24px));transition:transform .22s ease;overflow:hidden;display:flex;flex-direction:column;
-    }}
-    .drawer.open{{transform:translateY(0)}}
-    .drawer-head{{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--soft)}}
-    .drawer-title{{font-weight:900;font-size:17px}}
-    .drawer-sub{{color:#cbd5e1;font-size:13px;margin-top:3px;line-height:1.3}}
-    .close{{border:0;background:rgba(255,255,255,.16);color:white;width:38px;height:38px;border-radius:999px;font-size:24px;line-height:1;cursor:pointer;flex:0 0 auto}}
+    }
+    .drawer.open{transform:translateY(0)}
+    .drawer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--soft)}
+    .drawer-title{font-weight:900;font-size:17px}
+    .drawer-sub{color:#cbd5e1;font-size:13px;margin-top:3px;line-height:1.3}
+    .close{border:0;background:rgba(255,255,255,.16);color:white;width:38px;height:38px;border-radius:999px;font-size:24px;line-height:1;cursor:pointer;flex:0 0 auto}
 
-    .day-list{{overflow:auto;padding:10px;-webkit-overflow-scrolling:touch}}
-    .day{{
+    .day-list{overflow:auto;padding:10px;-webkit-overflow-scrolling:touch}
+    .day{
       width:100%;display:grid;grid-template-columns:10px 1fr auto;gap:10px;align-items:center;color:white;
       background:rgba(255,255,255,.07);border:1px solid var(--soft);border-radius:14px;padding:10px;margin-bottom:8px;text-align:left;cursor:pointer;min-height:56px;
-    }}
-    .day.active{{background:rgba(255,255,255,.20);border-color:rgba(255,255,255,.65)}}
-    .stripe{{width:10px;height:40px;border-radius:999px}}
-    .date{{display:block;font-size:12px;color:#cbd5e1;font-weight:800;margin-bottom:2px}}
-    .name{{display:block;font-size:15px;font-weight:900;line-height:1.2}}
-    .arrow{{font-size:22px;color:#cbd5e1;font-weight:900}}
+    }
+    .day.active{background:rgba(255,255,255,.20);border-color:rgba(255,255,255,.65)}
+    .stripe{width:10px;height:40px;border-radius:999px}
+    .date{display:block;font-size:12px;color:#cbd5e1;font-weight:800;margin-bottom:2px}
+    .name{display:block;font-size:15px;font-weight:900;line-height:1.2}
+    .arrow{font-size:22px;color:#cbd5e1;font-weight:900}
 
-    .card{{
+    .card{
       position:fixed;left:10px;right:10px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:1450;
       background:white;color:#111827;border-radius:18px;box-shadow:var(--shadow);overflow:hidden;display:none;max-height:74dvh;
-    }}
-    .card.show{{display:block}}
-    .card-top{{color:white;padding:12px 52px 12px 14px;position:relative}}
-    .card-date{{font-size:13px;font-weight:900;opacity:.93;margin-bottom:2px}}
-    .card-title{{font-size:18px;font-weight:900;line-height:1.2}}
-    .card-close{{position:absolute;right:8px;top:8px;border:0;background:rgba(255,255,255,.24);color:white;width:38px;height:38px;border-radius:999px;font-size:24px;line-height:1;cursor:pointer}}
-    .card-body{{padding:12px 14px 14px;font-size:14px;line-height:1.35;overflow:auto;max-height:calc(74dvh - 70px)}}
-    .facts{{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}}
-    .fact{{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px;font-size:13px}}
-    .fact b{{display:block;color:#64748b;text-transform:uppercase;font-size:11px;margin-bottom:2px}}
-    .route{{margin-top:10px;padding-top:10px;border-top:1px solid #e5e7eb;color:#334155;font-size:13px}}
+    }
+    .card.show{display:block}
+    .card-top{color:white;padding:12px 52px 12px 14px;position:relative}
+    .card-date{font-size:13px;font-weight:900;opacity:.93;margin-bottom:2px}
+    .card-title{font-size:18px;font-weight:900;line-height:1.2}
+    .card-close{position:absolute;right:8px;top:8px;border:0;background:rgba(255,255,255,.24);color:white;width:38px;height:38px;border-radius:999px;font-size:24px;line-height:1;cursor:pointer}
+    .card-body{padding:12px 14px 14px;font-size:14px;line-height:1.35;overflow:auto;max-height:calc(74dvh - 70px)}
+    .facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+    .fact{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px;font-size:13px}
+    .fact b{display:block;color:#64748b;text-transform:uppercase;font-size:11px;margin-bottom:2px}
+    .route{margin-top:10px;padding-top:10px;border-top:1px solid #e5e7eb;color:#334155;font-size:13px}
 
-    .schedule-toggle,.reset-checks{{
+    .schedule-toggle,.reset-checks{
       width:100%;border:0;border-radius:12px;background:#111827;color:white;font-weight:900;
       padding:11px 12px;margin-top:12px;cursor:pointer;font-size:14px;
-    }}
-    .timeline{{display:none;margin-top:12px;border-top:1px solid #e5e7eb;padding-top:4px}}
-    .timeline.open{{display:block}}
-    .slot{{display:grid;grid-template-columns:88px 1fr;gap:10px;padding:11px 0;border-bottom:1px solid #edf2f7}}
-    .slot:last-child{{border-bottom:0}}
-    .slot-time{{font-weight:900;color:#111827;font-size:13px;line-height:1.25}}
-    .slot-main{{min-width:0}}
-    .slot-title{{font-weight:900;margin-bottom:2px}}
-    .slot-place{{color:#475569;font-size:13px;margin-bottom:3px}}
-    .slot-note{{color:#334155;font-size:13px}}
+    }
+    .timeline{display:none;margin-top:12px;border-top:1px solid #e5e7eb;padding-top:4px}
+    .timeline.open{display:block}
+    .slot{display:grid;grid-template-columns:88px 1fr;gap:10px;padding:11px 0;border-bottom:1px solid #edf2f7}
+    .slot:last-child{border-bottom:0}
+    .slot-time{font-weight:900;color:#111827;font-size:13px;line-height:1.25}
+    .slot-main{min-width:0}
+    .slot-title{font-weight:900;margin-bottom:2px}
+    .slot-place{color:#475569;font-size:13px;margin-bottom:3px}
+    .slot-note{color:#334155;font-size:13px}
 
-    .check-panel{{
+    .check-panel{
       position:fixed;inset:10px;z-index:1700;background:white;color:#111827;border-radius:18px;
       box-shadow:var(--shadow);display:none;overflow:hidden;flex-direction:column;
       padding-bottom:env(safe-area-inset-bottom);
-    }}
-    .check-panel.open{{display:flex}}
-    .check-head{{
+    }
+    .check-panel.open{display:flex}
+    .check-head{
       background:#111827;color:white;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;
-    }}
-    .check-title{{font-weight:900;font-size:18px}}
-    .check-sub{{font-size:13px;color:#cbd5e1;margin-top:3px;line-height:1.3}}
-    .check-body{{overflow:auto;padding:12px 14px 18px;-webkit-overflow-scrolling:touch}}
-    .progress-wrap{{background:#e5e7eb;border-radius:999px;height:12px;overflow:hidden;margin:4px 0 10px}}
-    .progress-bar{{height:100%;width:0%;background:#16a34a;transition:width .18s ease}}
-    .progress-text{{font-size:13px;color:#475569;margin-bottom:12px;font-weight:800}}
-    .check-section{{margin:0 0 16px}}
-    .check-section h3{{font-size:15px;margin:0 0 8px;padding:9px 10px;background:#f1f5f9;border-radius:12px}}
-    .check-row{{
+    }
+    .check-title{font-weight:900;font-size:18px}
+    .check-sub{font-size:13px;color:#cbd5e1;margin-top:3px;line-height:1.3}
+    .check-body{overflow:auto;padding:12px 14px 18px;-webkit-overflow-scrolling:touch}
+    .progress-wrap{background:#e5e7eb;border-radius:999px;height:12px;overflow:hidden;margin:4px 0 10px}
+    .progress-bar{height:100%;width:0%;background:#16a34a;transition:width .18s ease}
+    .progress-text{font-size:13px;color:#475569;margin-bottom:12px;font-weight:800}
+    .check-section{margin:0 0 16px}
+    .check-section h3{font-size:15px;margin:0 0 8px;padding:9px 10px;background:#f1f5f9;border-radius:12px}
+    .check-row{
       display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:start;
       padding:10px 4px;border-bottom:1px solid #edf2f7;font-size:14px;line-height:1.28;
-    }}
-    .check-row input{{width:22px;height:22px;margin:0;accent-color:#16a34a}}
-    .check-row.done span{{text-decoration:line-through;color:#64748b}}
-    .reset-checks{{background:#b91c1c;margin-bottom:10px}}
+    }
+    .check-row input{width:22px;height:22px;margin:0;accent-color:#16a34a}
+    .check-row.done span{text-decoration:line-through;color:#64748b}
+    .reset-checks{background:#b91c1c;margin-bottom:10px}
 
-    .hotel-label{{
+    .hotel-label{
       background:rgba(17,24,39,.92);color:white;border-radius:999px;padding:6px 10px;font-size:13px;font-weight:900;
       box-shadow:0 2px 10px rgba(0,0,0,.28);white-space:nowrap;pointer-events:auto;
-    }}
-    .leaflet-interactive{{cursor:pointer}}
-    .tap-line{{cursor:pointer;stroke-linecap:round;stroke-linejoin:round}}
+    }
+    .leaflet-interactive{cursor:pointer}
+    .tap-line{cursor:pointer;stroke-linecap:round;stroke-linejoin:round}
 
-    @media (min-width:780px){{
-      .drawer{{left:18px;right:auto;bottom:18px;width:410px;max-height:72vh}}
-      .menu-btn{{left:18px;bottom:18px}}
-      .checklist-btn{{right:auto;left:146px;bottom:18px}}
-      .card{{left:auto;right:18px;bottom:18px;width:460px;max-height:84vh}}
-      .card-body{{max-height:calc(84vh - 74px)}}
-      .hint{{left:58px;right:auto;top:16px}}
-      .check-panel{{inset:24px;max-width:720px;margin:auto;max-height:90vh}}
-    }}
-    @media (max-width:420px){{
-      .hint{{font-size:13px}}
-      .name{{font-size:14px}}
-      .card-title{{font-size:16px}}
-      .facts{{grid-template-columns:1fr}}
-      .slot{{grid-template-columns:76px 1fr;gap:8px}}
-      .menu-btn,.checklist-btn{{font-size:14px;padding:11px 14px}}
-    }}
+    @media (min-width:780px){
+      .drawer{left:18px;right:auto;bottom:18px;width:410px;max-height:72vh}
+      .menu-btn{left:18px;bottom:18px}
+      .checklist-btn{right:auto;left:146px;bottom:18px}
+      .card{left:auto;right:18px;bottom:18px;width:460px;max-height:84vh}
+      .card-body{max-height:calc(84vh - 74px)}
+      .hint{left:58px;right:auto;top:16px}
+      .check-panel{inset:24px;max-width:720px;margin:auto;max-height:90vh}
+    }
+    @media (max-width:420px){
+      .hint{font-size:13px}
+      .name{font-size:14px}
+      .card-title{font-size:16px}
+      .facts{grid-template-columns:1fr}
+      .slot{grid-template-columns:76px 1fr;gap:8px}
+      .menu-btn,.checklist-btn{font-size:14px;padding:11px 14px}
+    }
   </style>
 </head>
 <body>
@@ -510,16 +207,16 @@ html = f"""<!doctype html>
 <script>
 "use strict";
 
-const places = {json.dumps(places, ensure_ascii=False)};
-const days = {json.dumps(days, ensure_ascii=False)};
-const checklists = {json.dumps(checklists, ensure_ascii=False)};
+const places = {"Viesnīca OAZ / Golema": {"lat": 41.25, "lon": 19.523, "icon": "🏨"}, "Tirānas lidosta": {"lat": 41.4147, "lon": 19.7206, "icon": "✈️"}, "Kruja": {"lat": 41.5095, "lon": 19.792, "icon": "🏰"}, "Rodona rags": {"lat": 41.582, "lon": 19.445, "icon": "🌊"}, "Llogaras pāreja": {"lat": 40.196, "lon": 19.592, "icon": "⛰️"}, "Maja e Qorres zona": {"lat": 40.205, "lon": 19.604, "icon": "🥾"}, "Radhimë / Orikum": {"lat": 40.366, "lon": 19.493, "icon": "🏖️"}, "Vlorë niršanas vieta": {"lat": 40.466, "lon": 19.489, "icon": "🤿"}, "Karaburun-Sazan zona": {"lat": 40.435, "lon": 19.3, "icon": "🐠"}, "Berata": {"lat": 40.7058, "lon": 19.9522, "icon": "🏘️"}, "Bogovë ūdenskritums": {"lat": 40.564, "lon": 20.132, "icon": "💧"}, "Koman ezera piestātne": {"lat": 42.103, "lon": 19.823, "icon": "🚤"}, "Šalas upe": {"lat": 42.185, "lon": 19.779, "icon": "💦"}};
+const days = [{"id": "arrival", "date": "03.07. piektdiena", "title": "Ierašanās + Golemas pludmale", "color": "#475569", "dash": "8 8", "weight": 7, "bend": -0.2, "points": ["Tirānas lidosta", "Viesnīca OAZ / Golema"], "summary": "Nakts lidojums, transfērs uz Golemu, viesnīca un mierīga atpūta pie jūras.", "drive": "Tikai grupas transfērs", "effort": "Viegli", "emoji": "✈️", "schedule": [{"time": "02.07. 22:15–23:15", "title": "Tikšanās Rīgas lidostā", "place": "RIX", "note": "IMPRO grupa pie airBaltic biroja/kasēm. Nodod bagāžu."}, {"time": "02.07. 23:15–00:15", "title": "Drošība + iekāpšana", "place": "RIX", "note": "Paturi peldlietas/snorkeli rokas bagāžā, ja vajag."}, {"time": "00:15–01:55", "title": "Lidojums Rīga → Tirāna", "place": "Lidmašīna", "note": "Guli, cik vari."}, {"time": "02:00–02:30", "title": "Pārgājiens uz lidostas viesnīcu", "place": "Tirānas lidosta", "note": "Nekādu gudro plānu. Vienkārši gulēt."}, {"time": "02:30–09:00", "title": "Miegs", "place": "Lidostas viesnīca", "note": "Atkopšanās pēc vēlā lidojuma."}, {"time": "09:00–10:00", "title": "Brokastis + izrakstīšanās", "place": "Lidostas viesnīca", "note": "Ūdens, SIM/eSIM, ja vajag."}, {"time": "~10:00–13:00", "title": "Transfērs uz Golemu", "place": "Tirāna → Durresa → Hotel OAZ", "note": "Īsa Durresas apskate, tad viesnīca."}, {"time": "13:00–15:00", "title": "Iekārtošanās + pusdienas", "place": "Hotel OAZ", "note": "Pludmales dvieļi jāņem pašiem."}, {"time": "15:00–17:00", "title": "Pludmale / atpūta", "place": "Golema", "note": "Viegls peldiņš, bez braukšanas."}, {"time": "17:00–18:00", "title": "Auto noma / loģistika", "place": "Golema", "note": "Ideāli: auto piegāde uz viesnīcu no 04.07. rīta."}, {"time": "18:00–20:00", "title": "Vakariņas + pastaiga", "place": "Golemas promenāde", "note": "Agrs vakars ir labāks par zombija režīmu."}, {"time": "20:00–22:00", "title": "Sagatavošanās", "place": "Hotel OAZ", "note": "Ūdens, saules krēms, snorkelis, apavi, powerbank."}, {"time": "22:00–23:59", "title": "Miegs", "place": "Hotel OAZ", "note": "Nākamā diena ir pirmais pašbrauciens."}]}, {"id": "kruje", "date": "04.07. sestdiena", "title": "Kruja + Rodona rags", "color": "#ef4444", "dash": "", "weight": 6, "bend": 0.16, "points": ["Viesnīca OAZ / Golema", "Kruja", "Rodona rags", "Viesnīca OAZ / Golema"], "summary": "Krujas vecais tirgus un pils, pēc tam jūras skati un iespējama snorkelēšana Rodona ragā.", "drive": "Vidējs pašbrauciens", "effort": "Viegli / vidēji", "emoji": "🏰", "schedule": [{"time": "07:30–08:30", "title": "Brokastis + auto", "place": "Hotel OAZ", "note": "Pārbaudi degvielu, riepas, nobildē auto stāvokli."}, {"time": "08:30–10:00", "title": "Brauciens uz Kruju", "place": "Golema → Kruja", "note": "~1h15–1h30. Pirmā braukšanas diena — mierīgi."}, {"time": "10:00–12:30", "title": "Krujas tirgus + pils", "place": "Kruja", "note": "Vecais tirgus, pils zona, skati, kafija."}, {"time": "12:30–13:30", "title": "Pusdienas", "place": "Kruja", "note": "Vieglākas pusdienas, ja vēl gribat snorkelēt."}, {"time": "13:30–15:00", "title": "Brauciens uz Rodona ragu", "place": "Kruja → Rodona rags", "note": "~1h15–1h30. Pie raga ceļi var būt lēnāki."}, {"time": "15:00–17:30", "title": "Rodona rags", "place": "Rodona rags", "note": "Pils / baznīca / klinšaina piekraste. Snorkelēt tikai mierīgā jūrā."}, {"time": "17:30–19:00", "title": "Brauciens atpakaļ", "place": "Rodona rags → Golema", "note": "~1h15–1h30. Ja esi noguris, paņem pauzi."}, {"time": "19:00–21:00", "title": "Vakariņas + pludmale", "place": "Golema", "note": "Mierīgs vakars."}, {"time": "21:00–22:00", "title": "Pārgājiena sagatavošana", "place": "Hotel OAZ", "note": "3L ūdens katram, elektrolīti, cepure, saules krēms, normāli apavi."}, {"time": "22:00–23:59", "title": "Miegs", "place": "Hotel OAZ", "note": "Nākamā diena būs smaga."}]}, {"id": "llogara", "date": "05.07. svētdiena", "title": "Smags pārgājiens: Llogara / Maja e Qorres", "color": "#16a34a", "dash": "", "weight": 6, "bend": -0.12, "points": ["Viesnīca OAZ / Golema", "Llogaras pāreja", "Maja e Qorres zona", "Radhimë / Orikum", "Viesnīca OAZ / Golema"], "summary": "Kalnu pārgājiens ar lieliem skatiem. Pēc tam mierīga pelde pie Radhimë / Orikum.", "drive": "Garš pašbrauciens", "effort": "Smagi", "emoji": "⛰️", "schedule": [{"time": "05:30–06:00", "title": "Celšanās", "place": "Hotel OAZ", "note": "Ātra ēšana, kafija, piepildi pudeles."}, {"time": "06:00–08:45", "title": "Brauciens uz Llogaru", "place": "Golema → Llogaras pāreja", "note": "~2h30–3h ar degvielas/kafijas pauzi."}, {"time": "08:45–09:15", "title": "Pārgājiena starts", "place": "Llogaras pāreja", "note": "Apavi, saules krēms, maršruts, laikapstākļu pārbaude."}, {"time": "09:15–14:30", "title": "Maja e Qorres pārgājiens", "place": "Llogara / Maja e Qorres", "note": "Apm. 9 km / ~1000 m kāpums. Karsts, atklāts, maz ūdens. Ja laiks slikts — griezties atpakaļ."}, {"time": "14:30–15:30", "title": "Pusdienas + atpūta", "place": "Llogaras pāreja", "note": "Ja esat beigti, izlaidiet jūras pieturu un brauciet mierīgi atpakaļ."}, {"time": "15:30–16:00", "title": "Brauciens līdz jūrai", "place": "Llogara → Radhimë / Orikum", "note": "~30 min. Nesteidzies lejup pa kalnu ceļu."}, {"time": "16:00–17:30", "title": "Pelde / snorkelis", "place": "Radhimë / Orikum", "note": "Tikai mierīga pelde. Bez varoņošanas pēc smaga pārgājiena."}, {"time": "17:30–20:15", "title": "Brauciens uz Golemu", "place": "Radhimë / Orikum → Hotel OAZ", "note": "~2h30–3h. Pauze, ja vajag."}, {"time": "20:15–21:30", "title": "Vakariņas + duša", "place": "Golema", "note": "Atkopšanās."}, {"time": "21:30–23:59", "title": "Miegs", "place": "Hotel OAZ", "note": "Nekāds alkohola maratons pirms niršanas."}]}, {"id": "scuba", "date": "06.07. pirmdiena", "title": "Niršana / snorkelēšana: Karaburun-Sazan", "color": "#0284c7", "dash": "", "weight": 6, "bend": 0.1, "points": ["Viesnīca OAZ / Golema", "Vlorë niršanas vieta", "Karaburun-Sazan zona", "Vlorë niršanas vieta", "Viesnīca OAZ / Golema"], "summary": "Iesācēju niršanas diena no Vlorë puses uz Karaburun-Sazan zonu.", "drive": "Vidēji garš pašbrauciens", "effort": "Vidēji", "emoji": "🤿", "schedule": [{"time": "06:15–06:45", "title": "Brokastis + soma", "place": "Hotel OAZ", "note": "Peldlietas, dvieļi, dokumenti, ūdens. Jums vajag Discover Scuba / Try Dive, nevis sertificētu nirēju programmu."}, {"time": "06:45–08:45", "title": "Brauciens uz niršanas vietu", "place": "Golema → Vlorë / Radhimë / Orikum", "note": "~2h–2h30. Precīzu piestātni apstiprina operators."}, {"time": "08:45–09:30", "title": "Reģistrācija + ekipējums", "place": "Niršanas centrs / marina", "note": "Papīri, izmēri, drošības instruktāža."}, {"time": "09:30–13:00", "title": "Laiva + pirmā niršana / snorkelis", "place": "Karaburun-Sazan zona", "note": "Labākā reālistiskā zona no Golemas: Vlorë līcis, Sazan, Karaburun."}, {"time": "13:00–14:00", "title": "Pusdienas / virsmas pauze", "place": "Laiva vai pludmale", "note": "Ūdens, ēdiens, bez alkohola."}, {"time": "14:00–16:30", "title": "Otrā aktivitāte", "place": "Sazan / Karaburun / Haxhi Ali alas zona", "note": "Otrā iesācēju niršana vai snorkelēšana — atkarīgs no operatora un jūras."}, {"time": "16:30–17:30", "title": "Atkopšanās", "place": "Vlorë / marina", "note": "Noskalo ekipējumu, uzkoda, īsa pastaiga."}, {"time": "17:30–19:45", "title": "Brauciens uz Golemu", "place": "Vlorë → Golema", "note": "~2h–2h30. Ja saules/jūras nogurums — pauze."}, {"time": "19:45–21:30", "title": "Vakariņas", "place": "Golema", "note": "Viegls vakars."}, {"time": "21:30–23:59", "title": "Miegs", "place": "Hotel OAZ", "note": "Nākamā diena ir mierīgāka."}]}, {"id": "berat", "date": "07.07. otrdiena", "title": "Berata + Bogovë ūdenskritums", "color": "#f59e0b", "dash": "", "weight": 6, "bend": 0.13, "points": ["Viesnīca OAZ / Golema", "Berata", "Bogovë ūdenskritums", "Viesnīca OAZ / Golema"], "summary": "Beratas vecpilsēta un pils, pusdienas, pēc tam ūdenskrituma pelde.", "drive": "Vidēji garš pašbrauciens", "effort": "Vidēji", "emoji": "🏘️", "schedule": [{"time": "07:30–08:15", "title": "Brokastis", "place": "Hotel OAZ", "note": "Peldlietas, viegli apavi, ūdens."}, {"time": "08:15–10:00", "title": "Brauciens uz Beratu", "place": "Golema → Berata", "note": "~1h30–1h45."}, {"time": "10:00–12:30", "title": "Beratas pils / Kala", "place": "Berata", "note": "Pils zona, skatu punkti, vecās ielas."}, {"time": "12:30–14:00", "title": "Pusdienas + pastaiga", "place": "Mangalem + Gorica tilts", "note": "Vecpilsēta bez garlaicīgas muzeju pārdozēšanas."}, {"time": "14:00–15:15", "title": "Brauciens uz ūdenskritumu", "place": "Berata → Bogovë", "note": "~1h–1h15. Ja ceļš/karstums kaitina, šo daļu var izlaist."}, {"time": "15:15–17:15", "title": "Bogovë ūdenskritums", "place": "Bogovë", "note": "Īsa pastaiga, pelde, bildes."}, {"time": "17:15–19:45", "title": "Brauciens uz Golemu", "place": "Bogovë / Berata → Golema", "note": "~2h15–2h45. Vakarā pārbaudi degvielu."}, {"time": "19:45–21:30", "title": "Vakariņas + sagatavošanās", "place": "Golema", "note": "Sagatavoties Koman/Šala ekskursijai. Jānoskaidro precīzs izbraukšanas laiks."}, {"time": "21:30–23:59", "title": "Miegs", "place": "Hotel OAZ", "note": "Koman diena būs gara."}]}, {"id": "koman", "date": "08.07. trešdiena", "title": "Koman ezers + Šalas upe", "color": "#7c3aed", "dash": "", "weight": 7, "bend": -0.1, "points": ["Viesnīca OAZ / Golema", "Koman ezera piestātne", "Šalas upe", "Koman ezera piestātne", "Viesnīca OAZ / Golema"], "summary": "Organizētā IMPRO ekskursija ar autobusu un laivu uz Koman ezeru un Šalas upi.", "drive": "Organizēta ekskursija, gara diena", "effort": "Vidēji", "emoji": "🚤", "schedule": [{"time": "05:00–05:30", "title": "Celšanās", "place": "Hotel OAZ", "note": "Ūdens, brokastu paka, sausā soma. Auto nav vajadzīgs."}, {"time": "05:30–09:30", "title": "Grupas transfērs", "place": "Golema → Koman zona", "note": "Precīzs laiks jāapstiprina ar gidu. PDF dienas ilgums ~12h."}, {"time": "09:30–11:00", "title": "Laiva pa Koman ezeru", "place": "Koman ezers", "note": "Fjordiem līdzīgi skati ceļā uz Šalas upi."}, {"time": "11:00–14:30", "title": "Šalas upe", "place": "Šalas upe", "note": "Pelde, bildes, pusdienas, slēptās pludmales zona. Ūdens apavi noder."}, {"time": "14:30–16:00", "title": "Laiva atpakaļ", "place": "Šalas upe → Koman", "note": "Operatora laiki var nobīdīties."}, {"time": "16:00–19:30", "title": "Transfērs uz Golemu", "place": "Koman → Hotel OAZ", "note": "Neplānot pārāk agras vakariņas."}, {"time": "19:30–21:00", "title": "Vakariņas + duša", "place": "Golema", "note": "Visticamāk diena būs izpumpējusi."}, {"time": "21:00–23:59", "title": "Atpūta / miegs", "place": "Hotel OAZ", "note": "Nākamā diena ir mierīga."}]}, {"id": "airport", "date": "09.07. ceturtdiena", "title": "Pēdējā pludmale + lidostas transfērs", "color": "#ec4899", "dash": "14 8", "weight": 8, "bend": 0.3, "points": ["Viesnīca OAZ / Golema", "Tirānas lidosta"], "summary": "Mierīga pēdējā diena pie jūras, mantu sakārtošana un vēlais transfērs uz Tirānas lidostu.", "drive": "Tikai grupas transfērs", "effort": "Viegli", "emoji": "✈️", "schedule": [{"time": "08:30–10:00", "title": "Brokastis / izgulēšanās", "place": "Hotel OAZ", "note": "Nekādu varoņplānu pirms nakts lidojuma."}, {"time": "10:00–13:00", "title": "Pēdējā pludmale", "place": "Hotel OAZ pludmale", "note": "Pelde/snorkelis mierīgā režīmā. Naktī lidojums."}, {"time": "13:00–14:30", "title": "Pusdienas", "place": "Golema", "note": "Sāc kravāties pirms slinkums uzvar."}, {"time": "14:30–17:00", "title": "Brīvais laiks", "place": "Golema vai Durresa", "note": "Noklusējums: pludmale/diendusa. Durresa tikai, ja vēl ir auto un tiešām gribas."}, {"time": "17:00–18:30", "title": "Auto nodošana + kravāšanās", "place": "Hotel OAZ", "note": "Nobildē auto stāvokli pie nodošanas."}, {"time": "18:30–20:30", "title": "Pēdējās vakariņas", "place": "Golema", "note": "Dokumenti un pases pa rokai."}, {"time": "20:30–23:00", "title": "Buferis", "place": "Hotel OAZ", "note": "Duša, telefoni, somas, snorkelis/flipperi nav palikuši žāvēties."}, {"time": "~23:30–00:30", "title": "Transfērs uz lidostu", "place": "Golema → Tirānas lidosta", "note": "PDF: izrakstīšanās/transfērs ap 23:30."}, {"time": "10.07. 00:30–01:45", "title": "Reģistrācija / drošība", "place": "Tirānas lidosta", "note": "Ūdens/uzkoda pēc drošības kontroles."}, {"time": "10.07. 01:45–02:35", "title": "Iekāpšanas buferis", "place": "Lidostas vārti", "note": "Pase pa rokai."}, {"time": "10.07. 02:35–06:15", "title": "Lidojums Tirāna → Rīga", "place": "Lidmašīna", "note": "Ceļojums beidzies."}]}];
+const checklists = [{"title": "Rezervēt / apstiprināt", "items": ["08.07. Koman ezers + Šalas upe ekskursija rezervēta un apmaksāta", "Precīzs 08.07. izbraukšanas laiks apstiprināts ar gidu", "Auto noma rezervēta no 04.07. rīta līdz 09.07. vakaram", "Auto piegādes / saņemšanas vieta pie Hotel OAZ apstiprināta", "Auto nomas depozīts, apdrošināšana un degvielas politika pārbaudīta", "Otrais vadītājs pievienots, ja vajag", "06.07. Discover Scuba / Try Dive rezervēts", "Niršanas tikšanās vieta, cena, ekipējums un atcelšanas noteikumi apstiprināti", "Noskaidrots, vai nenirēji var braukt līdzi laivā kā snorkelētāji", "Offline kartes lejupielādētas telefonā"]}, {"title": "Dokumenti / nauda / telefoni", "items": ["Pase derīga vismaz 6 mēnešus pēc ceļojuma beigām", "Lidojuma informācija saglabāta telefonā", "Viesnīcas informācija saglabāta telefonā", "Ceļojuma apdrošināšanas info saglabāts", "Auto nomas rezervācija saglabāta", "Niršanas rezervācija saglabāta", "Bankas karte + rezerves karte", "Nedaudz skaidras naudas EUR / ALL", "Revolut / bankas lietotne strādā ārpus Latvijas", "Telefona lādētājs + kabelis", "Powerbank uzlādēts", "eSIM / roaming plāns pārbaudīts"]}, {"title": "Pludmale / snorkelis / laiva", "items": ["Pludmales dvielis", "Peldkostīms / peldšorti", "Snorkeļa maska", "Trubiņa", "Pleznas", "Ūdens apavi", "Sausā soma telefonam / dokumentiem", "Saulesbrilles", "Cepure", "Saules krēms SPF 50", "After-sun / alveja", "Mazs dvielis vai lupatiņa somā"]}, {"title": "Pārgājiens / aktīvās dienas", "items": ["Pārgājiena apavi vai ļoti labi sporta apavi", "Viegls pārgājiena apģērbs", "Mazā mugursoma", "Ūdens pudeles vismaz 3L katram Llogara dienai", "Elektrolīti", "Enerģijas batoniņi / uzkodas", "Plāksteri tulznām", "Aptieciņa ar pamata zālēm", "Lietus / vēja jaka, ja prognoze izskatās slikta", "Google Maps / Organic Maps offline maršruti"]}, {"title": "Ikdienas soma", "items": ["Telefons", "Maks / karte / skaidra nauda", "Pase vai pases kopija", "Ūdens", "Saules krēms", "Saulesbrilles", "Austiņas", "Mitrās salvetes", "Papīra salvetes", "Roku dezinfekcija", "Pretodu līdzeklis", "Maisiņš slapjām drēbēm"]}, {"title": "Pirms izbraukšanas no mājām", "items": ["Pases paņemtas", "Lādētāji paņemti", "Powerbank paņemts", "Snorkeļa komplekts paņemts", "Pludmales dvieļi paņemti", "Mājās izslēgts nevajadzīgais", "Atkritumi izmesti", "Atslēgas paņemtas", "Ceļojuma fails / karte atveras telefonā"]}];
 const STORAGE_KEY = "albaniaTripChecklistV1";
 
-const map = L.map("map", {{ preferCanvas: true, zoomControl: true }}).setView([41.05, 19.65], 8);
-L.tileLayer("https://tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png", {{
+const map = L.map("map", { preferCanvas: true, zoomControl: true }).setView([41.05, 19.65], 8);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
   attribution: "&copy; OpenStreetMap contributors"
-}}).addTo(map);
+}).addTo(map);
 
 const dayLayers = new Map();
 const routeBounds = new Map();
@@ -536,26 +233,26 @@ const scheduleToggle = document.getElementById("scheduleToggle");
 const checkPanel = document.getElementById("checkPanel");
 let selectedDayId = null;
 
-function stop(e) {{
-  if (e) {{
+function stop(e) {
+  if (e) {
     e.preventDefault();
     e.stopPropagation();
-  }}
-}}
+  }
+}
 
-function escapeHtml(text) {{
-  return String(text ?? "").replace(/[&<>"']/g, s => ({{
+function escapeHtml(text) {
+  return String(text ?? "").replace(/[&<>"']/g, s => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }}[s]));
-}}
+  }[s]));
+}
 
-function latLngOf(name) {{
+function latLngOf(name) {
   const p = places[name];
   if (!p) throw new Error("Trūkst koordināšu: " + name);
   return L.latLng(p.lat, p.lon);
-}}
+}
 
-function curvedSegment(start, end, bend, steps = 36) {{
+function curvedSegment(start, end, bend, steps = 36) {
   const lat1 = start.lat, lng1 = start.lng, lat2 = end.lat, lng2 = end.lng;
   const midLat = (lat1 + lat2) / 2, midLng = (lng1 + lng2) / 2;
   const dx = lng2 - lng1, dy = lat2 - lat1;
@@ -564,19 +261,19 @@ function curvedSegment(start, end, bend, steps = 36) {{
   const ctrlLat = midLat - dx * safeBend;
   const ctrlLng = midLng + dy * safeBend;
   const out = [];
-  for (let i = 0; i <= steps; i++) {{
+  for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const a = (1 - t) * (1 - t);
     const b = 2 * (1 - t) * t;
     const c = t * t;
     out.push([a * lat1 + b * ctrlLat + c * lat2, a * lng1 + b * ctrlLng + c * lng2]);
-  }}
+  }
   return out;
-}}
+}
 
-function curvedRoute(points, bend) {{
+function curvedRoute(points, bend) {
   const route = [];
-  for (let i = 0; i < points.length - 1; i++) {{
+  for (let i = 0; i < points.length - 1; i++) {
     const segment = curvedSegment(
       latLngOf(points[i]),
       latLngOf(points[i + 1]),
@@ -584,29 +281,29 @@ function curvedRoute(points, bend) {{
     );
     if (i > 0) segment.shift();
     route.push(...segment);
-  }}
+  }
   return route;
-}}
+}
 
-function allBounds() {{
+function allBounds() {
   return L.latLngBounds(days.flatMap(day => day.points.map(name => latLngOf(name))));
-}}
+}
 
-function setRoutesActive(activeId) {{
-  dayLayers.forEach((layerObj, id) => {{
+function setRoutesActive(activeId) {
+  dayLayers.forEach((layerObj, id) => {
     const selected = !activeId || id === activeId;
-    layerObj.outline.setStyle({{ opacity: selected ? 0.96 : 0.24, weight: selected ? layerObj.baseWeight + 5 : layerObj.baseWeight + 2 }});
-    layerObj.line.setStyle({{ opacity: selected ? 0.98 : 0.26, weight: selected ? layerObj.baseWeight : Math.max(3, layerObj.baseWeight - 2) }});
-    layerObj.hit.setStyle({{ weight: selected ? 46 : 34 }});
-  }});
+    layerObj.outline.setStyle({ opacity: selected ? 0.96 : 0.24, weight: selected ? layerObj.baseWeight + 5 : layerObj.baseWeight + 2 });
+    layerObj.line.setStyle({ opacity: selected ? 0.98 : 0.26, weight: selected ? layerObj.baseWeight : Math.max(3, layerObj.baseWeight - 2) });
+    layerObj.hit.setStyle({ weight: selected ? 46 : 34 });
+  });
   dayButtons.forEach((btn, id) => btn.classList.toggle("active", id === activeId));
-}}
+}
 
-function hideHint() {{
+function hideHint() {
   if (hint) hint.style.display = "none";
-}}
+}
 
-function openDrawer(e) {{
+function openDrawer(e) {
   stop(e);
   hideHint();
   checkPanel.classList.remove("open");
@@ -615,50 +312,50 @@ function openDrawer(e) {{
   checklistBtn.style.display = "none";
   card.classList.remove("show");
   setTimeout(() => map.invalidateSize(true), 250);
-}}
+}
 
-function closeDrawer(e) {{
+function closeDrawer(e) {
   stop(e);
   drawer.classList.remove("open");
   menuBtn.style.display = "block";
   checklistBtn.style.display = "block";
   setTimeout(() => map.invalidateSize(true), 250);
-}}
+}
 
-function closeCard(e) {{
+function closeCard(e) {
   stop(e);
   card.classList.remove("show");
   selectedDayId = null;
   setRoutesActive(null);
   timeline.classList.remove("open");
   scheduleToggle.textContent = "Rādīt pilno laika plānu";
-  map.fitBounds(allBounds(), {{ padding: [45, 45] }});
-}}
+  map.fitBounds(allBounds(), { padding: [45, 45] });
+}
 
-function renderTimeline(day) {{
+function renderTimeline(day) {
   timeline.innerHTML = day.schedule.map(item => `
     <div class="slot">
-      <div class="slot-time">${{escapeHtml(item.time)}}</div>
+      <div class="slot-time">${escapeHtml(item.time)}</div>
       <div class="slot-main">
-        <div class="slot-title">${{escapeHtml(item.title)}}</div>
-        <div class="slot-place">${{escapeHtml(item.place)}}</div>
-        <div class="slot-note">${{escapeHtml(item.note)}}</div>
+        <div class="slot-title">${escapeHtml(item.title)}</div>
+        <div class="slot-place">${escapeHtml(item.place)}</div>
+        <div class="slot-note">${escapeHtml(item.note)}</div>
       </div>
     </div>
   `).join("");
   timeline.classList.remove("open");
   scheduleToggle.textContent = "Rādīt pilno laika plānu";
   cardBody.scrollTop = 0;
-}}
+}
 
-function toggleSchedule(e) {{
+function toggleSchedule(e) {
   stop(e);
   const open = timeline.classList.toggle("open");
   scheduleToggle.textContent = open ? "Paslēpt laika plānu" : "Rādīt pilno laika plānu";
-  if (open) setTimeout(() => scheduleToggle.scrollIntoView({{ behavior: "smooth", block: "start" }}), 50);
-}}
+  if (open) setTimeout(() => scheduleToggle.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+}
 
-function selectDay(dayId, zoom) {{
+function selectDay(dayId, zoom) {
   const day = days.find(d => d.id === dayId);
   if (!day) return;
 
@@ -672,7 +369,7 @@ function selectDay(dayId, zoom) {{
 
   document.getElementById("cardTop").style.background = day.color;
   document.getElementById("cardDate").textContent = day.date;
-  document.getElementById("cardTitle").textContent = `${{day.emoji}} ${{day.title}}`;
+  document.getElementById("cardTitle").textContent = `${day.emoji} ${day.title}`;
   document.getElementById("cardSummary").textContent = day.summary;
   document.getElementById("cardDrive").textContent = day.drive;
   document.getElementById("cardEffort").textContent = day.effort;
@@ -680,134 +377,134 @@ function selectDay(dayId, zoom) {{
   renderTimeline(day);
   card.classList.add("show");
 
-  if (zoom) map.fitBounds(routeBounds.get(dayId), {{ padding: [65, 65], maxZoom: 10 }});
-}}
+  if (zoom) map.fitBounds(routeBounds.get(dayId), { padding: [65, 65], maxZoom: 10 });
+}
 
-function addMarkers() {{
+function addMarkers() {
   const hotel = places["Viesnīca OAZ / Golema"];
-  L.circleMarker([hotel.lat, hotel.lon], {{
+  L.circleMarker([hotel.lat, hotel.lon], {
     radius: 9, color: "#111827", fillColor: "#111827", weight: 3, fillOpacity: 1
-  }}).addTo(map).on("click", () => map.setView([hotel.lat, hotel.lon], 12));
+  }).addTo(map).on("click", () => map.setView([hotel.lat, hotel.lon], 12));
 
-  L.marker([41.2585, 19.4900], {{
-    icon: L.divIcon({{ className: "hotel-label", html: "🏨 Golema — viesnīca", iconSize: null }})
-  }}).addTo(map).on("click", () => map.setView([hotel.lat, hotel.lon], 12));
+  L.marker([41.2585, 19.4900], {
+    icon: L.divIcon({ className: "hotel-label", html: "🏨 Golema — viesnīca", iconSize: null })
+  }).addTo(map).on("click", () => map.setView([hotel.lat, hotel.lon], 12));
 
-  Object.entries(places).forEach(([name, p]) => {{
+  Object.entries(places).forEach(([name, p]) => {
     if (name === "Viesnīca OAZ / Golema") return;
     const isAirport = name.includes("lidosta");
-    L.circleMarker([p.lat, p.lon], {{
+    L.circleMarker([p.lat, p.lon], {
       radius: isAirport ? 7 : 5,
       color: isAirport ? "#ec4899" : "#334155",
       fillColor: "#ffffff",
       weight: isAirport ? 3 : 2,
       fillOpacity: 0.95
-    }}).addTo(map).on("click", () => map.setView([p.lat, p.lon], 10));
-  }});
-}}
+    }).addTo(map).on("click", () => map.setView([p.lat, p.lon], 10));
+  });
+}
 
-function addRoutes() {{
-  days.forEach(day => {{
+function addRoutes() {
+  days.forEach(day => {
     const latlngs = curvedRoute(day.points, day.bend);
     routeBounds.set(day.id, L.latLngBounds(day.points.map(name => latLngOf(name))));
 
-    const outline = L.polyline(latlngs, {{
+    const outline = L.polyline(latlngs, {
       color: "#ffffff", weight: day.weight + 5, opacity: 0.96,
       lineCap: "round", lineJoin: "round", interactive: false
-    }}).addTo(map);
+    }).addTo(map);
 
-    const line = L.polyline(latlngs, {{
+    const line = L.polyline(latlngs, {
       color: day.color, weight: day.weight, opacity: 0.98,
       dashArray: day.dash || null, lineCap: "round", lineJoin: "round", interactive: false
-    }}).addTo(map);
+    }).addTo(map);
 
-    const hit = L.polyline(latlngs, {{
+    const hit = L.polyline(latlngs, {
       color: day.color, weight: 42, opacity: 0.001,
       lineCap: "round", lineJoin: "round", className: "tap-line"
-    }}).addTo(map);
+    }).addTo(map);
 
     hit.on("click", () => selectDay(day.id, true));
     hit.on("touchstart", () => selectDay(day.id, true));
     hit.on("pointerup", () => selectDay(day.id, true));
 
-    dayLayers.set(day.id, {{ outline, line, hit, baseWeight: day.weight }});
-  }});
-}}
+    dayLayers.set(day.id, { outline, line, hit, baseWeight: day.weight });
+  });
+}
 
-function addDayButtons() {{
+function addDayButtons() {
   const list = document.getElementById("dayList");
-  days.forEach(day => {{
+  days.forEach(day => {
     const btn = document.createElement("button");
     btn.className = "day";
     btn.innerHTML = `
-      <span class="stripe" style="background:${{day.color}}"></span>
+      <span class="stripe" style="background:${day.color}"></span>
       <span>
-        <span class="date">${{escapeHtml(day.date)}}</span>
-        <span class="name">${{day.emoji}} ${{escapeHtml(day.title)}}</span>
+        <span class="date">${escapeHtml(day.date)}</span>
+        <span class="name">${day.emoji} ${escapeHtml(day.title)}</span>
       </span>
       <span class="arrow">›</span>
     `;
-    btn.addEventListener("click", (e) => {{
+    btn.addEventListener("click", (e) => {
       stop(e);
       selectDay(day.id, true);
-    }});
+    });
     list.appendChild(btn);
     dayButtons.set(day.id, btn);
-  }});
-}}
+  });
+}
 
-function loadChecks() {{
-  try {{
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{{}}");
-  }} catch {{
-    return {{}};
-  }}
-}}
+function loadChecks() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
 
-function saveChecks(state) {{
+function saveChecks(state) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}}
+}
 
-function updateProgress() {{
+function updateProgress() {
   const boxes = [...document.querySelectorAll(".check-row input")];
   const checked = boxes.filter(b => b.checked).length;
   const total = boxes.length;
   const percent = total ? Math.round((checked / total) * 100) : 0;
   document.getElementById("progressBar").style.width = percent + "%";
-  document.getElementById("progressText").textContent = `${{checked}} / ${{total}} gatavs (${{percent}}%)`;
+  document.getElementById("progressText").textContent = `${checked} / ${total} gatavs (${percent}%)`;
   boxes.forEach(box => box.closest(".check-row").classList.toggle("done", box.checked));
-}}
+}
 
-function renderChecklist() {{
+function renderChecklist() {
   const state = loadChecks();
   const content = document.getElementById("checkContent");
   let index = 0;
-  content.innerHTML = checklists.map(section => {{
-    const rows = section.items.map(item => {{
+  content.innerHTML = checklists.map(section => {
+    const rows = section.items.map(item => {
       const id = "c" + index++;
       const checked = state[id] ? "checked" : "";
       return `
         <label class="check-row">
-          <input type="checkbox" data-check-id="${{id}}" ${{checked}}>
-          <span>${{escapeHtml(item)}}</span>
+          <input type="checkbox" data-check-id="${id}" ${checked}>
+          <span>${escapeHtml(item)}</span>
         </label>
       `;
-    }}).join("");
-    return `<section class="check-section"><h3>${{escapeHtml(section.title)}}</h3>${{rows}}</section>`;
-  }}).join("");
+    }).join("");
+    return `<section class="check-section"><h3>${escapeHtml(section.title)}</h3>${rows}</section>`;
+  }).join("");
 
-  content.querySelectorAll("input[type='checkbox']").forEach(box => {{
-    box.addEventListener("change", () => {{
+  content.querySelectorAll("input[type='checkbox']").forEach(box => {
+    box.addEventListener("change", () => {
       const s = loadChecks();
       s[box.dataset.checkId] = box.checked;
       saveChecks(s);
       updateProgress();
-    }});
-  }});
+    });
+  });
   updateProgress();
-}}
+}
 
-function openChecklist(e) {{
+function openChecklist(e) {
   stop(e);
   hideHint();
   drawer.classList.remove("open");
@@ -816,34 +513,34 @@ function openChecklist(e) {{
   menuBtn.style.display = "none";
   checklistBtn.style.display = "none";
   renderChecklist();
-}}
+}
 
-function closeChecklist(e) {{
+function closeChecklist(e) {
   stop(e);
   checkPanel.classList.remove("open");
   menuBtn.style.display = "block";
   checklistBtn.style.display = "block";
-}}
+}
 
-function resetChecks(e) {{
+function resetChecks(e) {
   stop(e);
   const ok = confirm("Notīrīt visas checklist atzīmes šajā telefonā?");
   if (!ok) return;
   localStorage.removeItem(STORAGE_KEY);
   renderChecklist();
-}}
+}
 
 menuBtn.addEventListener("click", openDrawer);
 checklistBtn.addEventListener("click", openChecklist);
 document.getElementById("drawerClose").addEventListener("click", closeDrawer);
 document.getElementById("cardClose").addEventListener("click", closeCard);
-document.getElementById("hintClose").addEventListener("click", (e) => {{ stop(e); hideHint(); }});
+document.getElementById("hintClose").addEventListener("click", (e) => { stop(e); hideHint(); });
 document.getElementById("checkClose").addEventListener("click", closeChecklist);
 document.getElementById("resetChecks").addEventListener("click", resetChecks);
 scheduleToggle.addEventListener("click", toggleSchedule);
 
-document.addEventListener("keydown", (e) => {{
-  if (e.key === "Escape") {{
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
     drawer.classList.remove("open");
     card.classList.remove("show");
     checkPanel.classList.remove("open");
@@ -851,14 +548,14 @@ document.addEventListener("keydown", (e) => {{
     checklistBtn.style.display = "block";
     selectedDayId = null;
     setRoutesActive(null);
-  }}
-}});
+  }
+});
 
 addMarkers();
 addRoutes();
 addDayButtons();
 renderChecklist();
-map.fitBounds(allBounds(), {{ padding: [45, 45] }});
+map.fitBounds(allBounds(), { padding: [45, 45] });
 
 drawer.classList.add("open");
 menuBtn.style.display = "none";
@@ -866,47 +563,15 @@ checklistBtn.style.display = "none";
 
 setTimeout(() => map.invalidateSize(true), 250);
 setTimeout(() => map.invalidateSize(true), 1000);
-setTimeout(() => {{ if (hint) hint.style.display = "none"; }}, 8500);
+setTimeout(() => { if (hint) hint.style.display = "none"; }, 8500);
 
-console.log("Albānijas karte OK", {{
+console.log("Albānijas karte OK", {
   dienas: days.length,
   vietas: Object.keys(places).length,
   laikaPlanaIeraksti: days.reduce((sum, d) => sum + d.schedule.length, 0),
   checklistItems: checklists.reduce((sum, s) => sum + s.items.length, 0),
   savesLocally: true
-}});
+});
 </script>
 </body>
 </html>
-"""
-
-out = Path("/mnt/data/index_complete_toolkit.html")
-out.write_text(html, encoding="utf-8")
-
-# Validation
-for d in days:
-    for p in d["points"]:
-        assert p in places, (d["id"], p)
-    assert d.get("schedule") and len(d["schedule"]) >= 8, (d["id"], len(d.get("schedule", [])))
-
-html_l = html.lower()
-checks = {
-    "local_storage": "localStorage" in html and "STORAGE_KEY" in html,
-    "checklist_button": "☑ Checklist" in html,
-    "checklist_items": sum(len(s["items"]) for s in checklists) == 65,
-    "schedule_records": sum(len(d["schedule"]) for d in days) == 71,
-    "no_vecaki": "vecāk" not in html_l,
-    "route_hit_area": "weight: 42" in html and "touchstart" in html and "pointerup" in html,
-    "hotel_label": "Golema — viesnīca" in html,
-    "drawer_open_initial": '<section class="drawer open"' in html,
-    "no_popups": "bindPopup" not in html and "openPopup" not in html,
-    "all_days": len(days) == 7,
-}
-assert all(checks.values()), checks
-
-print("Created complete toolkit:", out)
-print("Validation OK")
-for k, v in checks.items():
-    print(f"{k}: {v}")
-print("Schedule records:", sum(len(d['schedule']) for d in days))
-print("Checklist items:", sum(len(s['items']) for s in checklists))
