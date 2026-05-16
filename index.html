@@ -1,417 +1,258 @@
 <!doctype html>
 <html lang="lv">
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8">
   <title>Albānijas ceļojuma karte</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#111827">
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
-    /* Leaflet pamata CSS rezerve — lai karte nesaplīst, ja CDN CSS neielādējas. */
-    .leaflet-container {
-      overflow: hidden; position: relative; outline-style: none; background: #ddd;
-      font: 12px/1.5 Arial, Helvetica, sans-serif;
-    }
-    .leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,
-    .leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer {
-      position: absolute; left: 0; top: 0;
-    }
-    .leaflet-map-pane,.leaflet-marker-pane,.leaflet-shadow-pane,.leaflet-tile-pane,.leaflet-overlay-pane,
-    .leaflet-popup-pane,.leaflet-tooltip-pane {
-      position: absolute; left: 0; top: 0;
-    }
-    .leaflet-tile { user-select: none; -webkit-user-drag: none; visibility: hidden; }
-    .leaflet-tile-loaded { visibility: inherit; }
-    .leaflet-tile-pane { z-index: 200; }
-    .leaflet-overlay-pane { z-index: 400; }
-    .leaflet-shadow-pane { z-index: 500; }
-    .leaflet-marker-pane { z-index: 600; }
-    .leaflet-tooltip-pane { z-index: 650; }
-    .leaflet-popup-pane { z-index: 700; }
-    .leaflet-control { position: relative; z-index: 800; pointer-events: auto; }
-    .leaflet-top,.leaflet-bottom { position: absolute; z-index: 1000; pointer-events: none; }
-    .leaflet-top { top: 0; }
-    .leaflet-right { right: 0; }
-    .leaflet-bottom { bottom: 0; }
-    .leaflet-left { left: 0; }
-    .leaflet-control-zoom {
-      margin-left: 12px; margin-top: 12px; border: 2px solid rgba(0,0,0,0.2);
-      border-radius: 8px; background: #fff; overflow: hidden;
-    }
-    .leaflet-control-zoom a {
-      display: block; width: 30px; height: 30px; line-height: 30px; text-align: center;
-      text-decoration: none; color: black; background: white; border-bottom: 1px solid #ccc;
-      font: bold 20px Arial, Helvetica, sans-serif;
-    }
-    .leaflet-control-zoom a:last-child { border-bottom: none; }
-    .leaflet-tooltip {
-      position: absolute; padding: 6px; background-color: #fff; border: 1px solid #fff;
-      border-radius: 4px; color: #222; white-space: nowrap; user-select: none; pointer-events: none;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+    .leaflet-container{overflow:hidden;position:relative;outline-style:none;background:#ddd;font:12px/1.5 Arial,sans-serif}
+    .leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}
+    .leaflet-map-pane,.leaflet-marker-pane,.leaflet-shadow-pane,.leaflet-tile-pane,.leaflet-overlay-pane,.leaflet-popup-pane,.leaflet-tooltip-pane{position:absolute;left:0;top:0}
+    .leaflet-tile{user-select:none;-webkit-user-drag:none;visibility:hidden}
+    .leaflet-tile-loaded{visibility:inherit}
+    .leaflet-tile-pane{z-index:200} .leaflet-overlay-pane{z-index:400} .leaflet-shadow-pane{z-index:500} .leaflet-marker-pane{z-index:600} .leaflet-tooltip-pane{z-index:650} .leaflet-popup-pane{z-index:700}
+    .leaflet-control{position:relative;z-index:800;pointer-events:auto} .leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none} .leaflet-top{top:0} .leaflet-right{right:0} .leaflet-bottom{bottom:0} .leaflet-left{left:0}
+    .leaflet-control-zoom{margin-left:12px;margin-top:12px;border:2px solid rgba(0,0,0,.2);border-radius:8px;background:#fff;overflow:hidden}
+    .leaflet-control-zoom a{display:block;width:30px;height:30px;line-height:30px;text-align:center;text-decoration:none;color:#000;background:#fff;border-bottom:1px solid #ccc;font:bold 20px Arial}
+    .leaflet-control-zoom a:last-child{border-bottom:none}
+    .leaflet-tooltip{position:absolute;padding:6px;background:#fff;border:1px solid #fff;border-radius:4px;color:#222;white-space:nowrap;user-select:none;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+
+    *{box-sizing:border-box}
+    html,body,#map{height:100%;height:100dvh;width:100%;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f7}
+    #map{z-index:1}
+
+    :root{
+      --dark:rgba(17,24,39,.95);
+      --soft:rgba(255,255,255,.16);
+      --shadow:0 12px 32px rgba(0,0,0,.28);
     }
 
-    :root {
-      --panel-bg: rgba(17, 24, 39, 0.94);
-      --panel-text: #f9fafb;
-      --muted: #cbd5e1;
-      --soft-border: rgba(255,255,255,0.16);
-      --shadow: 0 10px 30px rgba(0,0,0,.28);
+    .menu-btn{
+      position:fixed;
+      left:14px;
+      bottom:calc(14px + env(safe-area-inset-bottom));
+      z-index:1400;
+      border:0;
+      border-radius:999px;
+      background:var(--dark);
+      color:white;
+      box-shadow:var(--shadow);
+      padding:12px 16px;
+      font-weight:800;
+      font-size:15px;
+      min-height:48px;
+      cursor:pointer;
+      display:none;
     }
 
-    html, body, #map {
-      height: 100%;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-      background: #eef2f7;
-      font-family: Arial, Helvetica, sans-serif;
+    .hint{
+      position:fixed;
+      left:14px;
+      right:14px;
+      top:calc(14px + env(safe-area-inset-top));
+      z-index:1350;
+      background:rgba(255,255,255,.96);
+      color:#111827;
+      border-radius:14px;
+      padding:10px 42px 10px 12px;
+      box-shadow:var(--shadow);
+      font-size:14px;
+      line-height:1.3;
+      max-width:560px;
+    }
+    .hint button{
+      position:absolute;
+      right:6px;
+      top:6px;
+      border:0;
+      background:#e5e7eb;
+      border-radius:999px;
+      width:30px;
+      height:30px;
+      font-size:20px;
+      line-height:1;
+      cursor:pointer;
     }
 
-    #map { z-index: 1; }
+    .drawer{
+      position:fixed;
+      left:10px;
+      right:10px;
+      bottom:calc(10px + env(safe-area-inset-bottom));
+      z-index:1500;
+      background:var(--dark);
+      color:white;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      max-height:min(78dvh,680px);
+      transform:translateY(calc(100% + 24px));
+      transition:transform .22s ease;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .drawer.open{transform:translateY(0)}
 
-    .top-hint {
-      position: absolute;
-      top: 16px;
-      left: 58px;
-      right: 16px;
-      z-index: 1200;
-      max-width: 610px;
-      background: rgba(255,255,255,0.96);
-      color: #111827;
-      border-radius: 14px;
-      padding: 10px 14px;
-      box-shadow: var(--shadow);
-      font-size: 15px;
-      line-height: 1.3;
+    .drawer-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:14px 16px 10px;
+      border-bottom:1px solid var(--soft);
+    }
+    .drawer-title{font-weight:900;font-size:17px}
+    .drawer-sub{color:#cbd5e1;font-size:13px;margin-top:3px;line-height:1.3}
+    .close{
+      border:0;
+      background:rgba(255,255,255,.16);
+      color:white;
+      width:38px;
+      height:38px;
+      border-radius:999px;
+      font-size:24px;
+      line-height:1;
+      cursor:pointer;
+      flex:0 0 auto;
     }
 
-    .top-hint strong { font-size: 16px; }
+    .day-list{overflow:auto;padding:10px;-webkit-overflow-scrolling:touch}
+    .day{
+      width:100%;
+      display:grid;
+      grid-template-columns:10px 1fr auto;
+      gap:10px;
+      align-items:center;
+      color:white;
+      background:rgba(255,255,255,.07);
+      border:1px solid var(--soft);
+      border-radius:14px;
+      padding:10px;
+      margin-bottom:8px;
+      text-align:left;
+      cursor:pointer;
+      min-height:56px;
+    }
+    .day.active{background:rgba(255,255,255,.20);border-color:rgba(255,255,255,.65)}
+    .stripe{width:10px;height:40px;border-radius:999px}
+    .date{display:block;font-size:12px;color:#cbd5e1;font-weight:800;margin-bottom:2px}
+    .name{display:block;font-size:15px;font-weight:900;line-height:1.2}
+    .arrow{font-size:22px;color:#cbd5e1;font-weight:900}
 
-    .panel {
-      position: absolute;
-      left: 18px;
-      bottom: 18px;
-      z-index: 1200;
-      width: min(420px, calc(100vw - 36px));
-      max-height: min(62vh, 640px);
-      background: var(--panel-bg);
-      color: var(--panel-text);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+    .card{
+      position:fixed;
+      left:10px;
+      right:10px;
+      bottom:calc(74px + env(safe-area-inset-bottom));
+      z-index:1450;
+      background:white;
+      color:#111827;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      display:none;
+      max-height:42dvh;
+    }
+    .card.show{display:block}
+    .card-top{color:white;padding:12px 52px 12px 14px;position:relative}
+    .card-date{font-size:13px;font-weight:900;opacity:.93;margin-bottom:2px}
+    .card-title{font-size:18px;font-weight:900;line-height:1.2}
+    .card-close{
+      position:absolute;
+      right:8px;
+      top:8px;
+      border:0;
+      background:rgba(255,255,255,.24);
+      color:white;
+      width:38px;
+      height:38px;
+      border-radius:999px;
+      font-size:24px;
+      line-height:1;
+      cursor:pointer;
+    }
+    .card-body{padding:12px 14px 14px;font-size:14px;line-height:1.35;overflow:auto;max-height:calc(42dvh - 70px)}
+    .facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+    .fact{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px;font-size:13px}
+    .fact b{display:block;color:#64748b;text-transform:uppercase;font-size:11px;margin-bottom:2px}
+    .route{margin-top:10px;padding-top:10px;border-top:1px solid #e5e7eb;color:#334155;font-size:13px}
+
+    .place-label{
+      background:rgba(255,255,255,.96);
+      color:#111827;
+      border:1px solid rgba(15,23,42,.25);
+      border-radius:999px;
+      padding:3px 8px;
+      font-size:12px;
+      font-weight:900;
+      box-shadow:0 2px 8px rgba(0,0,0,.16);
     }
 
-    .panel-header {
-      padding: 14px 16px 12px 16px;
-      border-bottom: 1px solid var(--soft-border);
+    .leaflet-interactive{cursor:pointer}
+
+    @media (min-width: 780px){
+      .drawer{left:18px;right:auto;bottom:18px;width:410px;max-height:72vh}
+      .menu-btn{left:18px;bottom:18px}
+      .card{left:auto;right:18px;bottom:18px;width:410px;max-height:58vh}
+      .card-body{max-height:calc(58vh - 74px)}
+      .hint{left:58px;right:auto;top:16px}
     }
 
-    .panel-title {
-      font-size: 17px;
-      font-weight: 800;
-      margin: 0 0 5px 0;
-    }
-
-    .panel-subtitle {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
-    }
-
-    .day-list {
-      overflow: auto;
-      padding: 10px 12px 12px 12px;
-    }
-
-    button {
-      font: inherit;
-    }
-
-    .day-btn {
-      width: 100%;
-      color: #fff;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid var(--soft-border);
-      border-radius: 14px;
-      padding: 10px 10px;
-      margin: 0 0 8px 0;
-      display: grid;
-      grid-template-columns: 10px 1fr auto;
-      gap: 10px;
-      align-items: center;
-      text-align: left;
-      cursor: pointer;
-      min-height: 58px;
-    }
-
-    .day-btn:hover {
-      background: rgba(255,255,255,0.14);
-    }
-
-    .day-btn.active {
-      background: rgba(255,255,255,0.19);
-      border-color: rgba(255,255,255,0.58);
-    }
-
-    .stripe {
-      width: 10px;
-      height: 42px;
-      border-radius: 999px;
-    }
-
-    .day-main {
-      min-width: 0;
-    }
-
-    .day-date {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-
-    .day-name {
-      font-size: 15px;
-      font-weight: 800;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .day-arrow {
-      color: var(--muted);
-      font-size: 20px;
-      font-weight: 800;
-    }
-
-    .detail-card {
-      position: absolute;
-      right: 18px;
-      bottom: 18px;
-      z-index: 1200;
-      width: min(420px, calc(100vw - 36px));
-      background: rgba(255,255,255,0.98);
-      color: #111827;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      display: none;
-    }
-
-    .detail-card.show {
-      display: block;
-    }
-
-    .detail-top {
-      padding: 14px 16px;
-      color: white;
-      position: relative;
-    }
-
-    .detail-top h2 {
-      margin: 0;
-      font-size: 18px;
-      line-height: 1.2;
-      padding-right: 34px;
-    }
-
-    .detail-top .date {
-      font-weight: 800;
-      opacity: .92;
-      margin-bottom: 3px;
-    }
-
-    .detail-body {
-      padding: 14px 16px 16px 16px;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin: 12px 0;
-    }
-
-    .pill {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 8px 10px;
-      font-size: 13px;
-    }
-
-    .pill b {
-      display: block;
-      font-size: 11px;
-      text-transform: uppercase;
-      color: #64748b;
-      margin-bottom: 2px;
-    }
-
-    .route-text {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid #e5e7eb;
-      color: #334155;
-      font-size: 13px;
-    }
-
-    .close-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      border: 0;
-      background: rgba(255,255,255,.22);
-      color: white;
-      border-radius: 999px;
-      width: 32px;
-      height: 32px;
-      cursor: pointer;
-      font-size: 20px;
-      line-height: 1;
-    }
-
-    .place-label {
-      background: rgba(255,255,255,.95);
-      color: #111827;
-      border: 1px solid rgba(15,23,42,.25);
-      border-radius: 999px;
-      padding: 3px 8px;
-      font-size: 12px;
-      font-weight: 800;
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
-    }
-
-    .day-label {
-      background: rgba(255,255,255,.94);
-      color: #111827;
-      border: 1px solid rgba(15,23,42,.22);
-      border-radius: 8px;
-      padding: 4px 8px;
-      font-size: 12px;
-      font-weight: 800;
-      box-shadow: 0 2px 8px rgba(0,0,0,.18);
-      white-space: nowrap;
-    }
-
-    .leaflet-interactive {
-      cursor: pointer;
-    }
-
-    @media (max-width: 760px) {
-      .top-hint {
-        top: 10px;
-        left: 56px;
-        right: 10px;
-        font-size: 13px;
-        padding: 9px 11px;
-      }
-
-      .top-hint strong {
-        font-size: 14px;
-      }
-
-      .panel {
-        left: 10px;
-        right: 10px;
-        bottom: 10px;
-        width: auto;
-        max-height: 44vh;
-        border-radius: 16px;
-      }
-
-      .panel-header {
-        padding: 11px 13px 9px 13px;
-      }
-
-      .panel-title {
-        font-size: 15px;
-      }
-
-      .panel-subtitle {
-        font-size: 12px;
-      }
-
-      .day-list {
-        padding: 8px 10px 10px 10px;
-      }
-
-      .day-btn {
-        min-height: 54px;
-        margin-bottom: 7px;
-      }
-
-      .day-name {
-        font-size: 14px;
-      }
-
-      .detail-card {
-        left: 10px;
-        right: 10px;
-        bottom: calc(44vh + 20px);
-        width: auto;
-        max-height: 36vh;
-        overflow: auto;
-      }
-
-      .detail-grid {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 420px){
+      .hint{font-size:13px}
+      .name{font-size:14px}
+      .card-title{font-size:16px}
+      .facts{grid-template-columns:1fr}
     }
   </style>
 </head>
-
 <body>
 <div id="map"></div>
 
-<div class="top-hint" id="topHint">
-  <strong>Pieskaries krāsainai līnijai vai dienai sarakstā.</strong> Atvērsies īss skaidrojums par konkrēto dienu.
+<div class="hint" id="hint">
+  <b>Izvēlies dienu sarakstā</b> vai pieskaries krāsainai līnijai kartē.
+  <button id="hintClose" aria-label="Aizvērt">×</button>
 </div>
 
-<section class="panel" aria-label="Ceļojuma dienas">
-  <div class="panel-header">
-    <div class="panel-title">🇦🇱 Albānijas ceļojuma karte</div>
-    <div class="panel-subtitle">Bāze visu nedēļu ir Golemā. Izvēlies dienu, lai redzētu maršrutu un īsu plānu.</div>
+<button class="menu-btn" id="menuBtn">☰ Dienas</button>
+
+<section class="drawer open" id="drawer" aria-label="Ceļojuma dienu saraksts">
+  <div class="drawer-head">
+    <div>
+      <div class="drawer-title">🇦🇱 Ceļojuma dienas</div>
+      <div class="drawer-sub">Izvēlies dienu. Logs aizvērsies, un karte pietuvinās maršrutu.</div>
+    </div>
+    <button class="close" id="drawerClose" aria-label="Aizvērt">×</button>
   </div>
   <div class="day-list" id="dayList"></div>
 </section>
 
-<aside class="detail-card" id="detailCard" aria-live="polite">
-  <div class="detail-top" id="detailTop">
-    <button class="close-btn" id="closeDetail" title="Aizvērt">×</button>
-    <div class="date" id="detailDate"></div>
-    <h2 id="detailTitle"></h2>
+<aside class="card" id="card" aria-live="polite">
+  <div class="card-top" id="cardTop">
+    <button class="card-close" id="cardClose" aria-label="Aizvērt">×</button>
+    <div class="card-date" id="cardDate"></div>
+    <div class="card-title" id="cardTitle"></div>
   </div>
-  <div class="detail-body">
-    <div id="detailSummary"></div>
-    <div class="detail-grid">
-      <div class="pill"><b>Braukšana</b><span id="detailDrive"></span></div>
-      <div class="pill"><b>Slodze</b><span id="detailEffort"></span></div>
+  <div class="card-body">
+    <div id="cardSummary"></div>
+    <div class="facts">
+      <div class="fact"><b>Braukšana</b><span id="cardDrive"></span></div>
+      <div class="fact"><b>Slodze</b><span id="cardEffort"></span></div>
     </div>
-    <div class="pill"><b>Piezīme vecākiem</b><span id="detailParent"></span></div>
-    <div class="route-text"><b>Maršruts:</b> <span id="detailRoute"></span></div>
+    <div class="route"><b>Maršruts:</b> <span id="cardRoute"></span></div>
   </div>
 </aside>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
 "use strict";
 
-const places = {"Viesnīca OAZ / Golema": {"lat": 41.25, "lon": 19.523, "icon": "🏨"}, "Tirānas lidosta": {"lat": 41.4147, "lon": 19.7206, "icon": "✈️"}, "Kruja": {"lat": 41.5095, "lon": 19.792, "icon": "🏰"}, "Rodona rags": {"lat": 41.582, "lon": 19.445, "icon": "🌊"}, "Llogaras pāreja": {"lat": 40.196, "lon": 19.592, "icon": "⛰️"}, "Maja e Qorres pārgājiena zona": {"lat": 40.205, "lon": 19.604, "icon": "🥾"}, "Radhimë / Orikum peldvieta": {"lat": 40.366, "lon": 19.493, "icon": "🏖️"}, "Vlorë niršanas tikšanās vieta": {"lat": 40.466, "lon": 19.489, "icon": "🤿"}, "Karaburun-Sazan niršanas zona": {"lat": 40.435, "lon": 19.3, "icon": "🐠"}, "Berata": {"lat": 40.7058, "lon": 19.9522, "icon": "🏘️"}, "Bogovë ūdenskritums": {"lat": 40.564, "lon": 20.132, "icon": "💧"}, "Koman ezera piestātne": {"lat": 42.103, "lon": 19.823, "icon": "🚤"}, "Šalas upe": {"lat": 42.185, "lon": 19.779, "icon": "💦"}};
-const days = [{"id": "arrival", "date": "03.07. piektdiena", "title": "Ierašanās + Golemas pludmale", "short": "03.07. Ierašanās", "color": "#475569", "dash": "8 8", "weight": 7, "bend": -0.2, "points": ["Tirānas lidosta", "Viesnīca OAZ / Golema"], "summary": "Ielidošana, transfērs uz Golemu, viesnīca un mierīga atpūta pie jūras.", "drive": "Tikai grupas transfērs", "effort": "Viegli", "parent_note": "Piemērots visiem. Šī ir mierīga atkopšanās diena.", "emoji": "✈️"}, {"id": "kruje-rodon", "date": "04.07. sestdiena", "title": "Kruja + Rodona rags", "short": "04.07. Kruja + Rodons", "color": "#ef4444", "dash": "", "weight": 6, "bend": 0.16, "points": ["Viesnīca OAZ / Golema", "Kruja", "Rodona rags", "Viesnīca OAZ / Golema"], "summary": "Pirmā pašbrauciena diena: Krujas vecais tirgus un pils, pēc tam jūras skati un iespējama snorkelēšana Rodona ragā.", "drive": "Vidējs pašbrauciens", "effort": "Viegli / vidēji", "parent_note": "Laba diena vecākiem, ja grib pievienoties — kultūra + jūra bez pārāk smagas slodzes.", "emoji": "🏰"}, {"id": "llogara", "date": "05.07. svētdiena", "title": "Smags pārgājiens: Llogara / Maja e Qorres", "short": "05.07. Llogara pārgājiens", "color": "#16a34a", "dash": "", "weight": 6, "bend": -0.12, "points": ["Viesnīca OAZ / Golema", "Llogaras pāreja", "Maja e Qorres pārgājiena zona", "Radhimë / Orikum peldvieta", "Viesnīca OAZ / Golema"], "summary": "Kalnu diena ar lieliem skatiem. Pēc pārgājiena — mierīga pelde pie Radhimë / Orikum.", "drive": "Garš pašbrauciens", "effort": "Smagi", "parent_note": "Droši vien nav vecāku diena, ja vien viņi negrib izlaist pārgājienu un tikai pabraukt līdzi.", "emoji": "⛰️"}, {"id": "scuba", "date": "06.07. pirmdiena", "title": "Niršana / snorkelēšana: Karaburun-Sazan", "short": "06.07. Niršana", "color": "#0284c7", "dash": "", "weight": 6, "bend": 0.1, "points": ["Viesnīca OAZ / Golema", "Vlorë niršanas tikšanās vieta", "Karaburun-Sazan niršanas zona", "Vlorë niršanas tikšanās vieta", "Viesnīca OAZ / Golema"], "summary": "Iesācēju / Discover Scuba diena no Vlorë puses uz Karaburun-Sazan zonu. Maršruts atkarīgs no operatora un jūras apstākļiem.", "drive": "Vidēji garš pašbrauciens", "effort": "Vidēji", "parent_note": "Vecāki var pievienoties tikai tad, ja niršanas kompānija ļauj braukt līdzi kā snorkelētājiem / laivas pasažieriem.", "emoji": "🤿"}, {"id": "berat", "date": "07.07. otrdiena", "title": "Berata + Bogovë ūdenskritums", "short": "07.07. Berata + Bogovë", "color": "#f59e0b", "dash": "", "weight": 6, "bend": 0.13, "points": ["Viesnīca OAZ / Golema", "Berata", "Bogovë ūdenskritums", "Viesnīca OAZ / Golema"], "summary": "Beratas vecpilsēta un pils, pusdienas, pēc tam ūdenskrituma pelde, ja pietiek enerģijas un ceļš ir normāls.", "drive": "Vidēji garš pašbrauciens", "effort": "Vidēji", "parent_note": "Laba diena vecākiem līdz Beratai. Ūdenskrituma daļu var atstāt tikai jums diviem.", "emoji": "🏘️"}, {"id": "koman", "date": "08.07. trešdiena", "title": "Koman ezers + Šalas upe", "short": "08.07. Komans + Šala", "color": "#7c3aed", "dash": "", "weight": 7, "bend": -0.1, "points": ["Viesnīca OAZ / Golema", "Koman ezera piestātne", "Šalas upe", "Koman ezera piestātne", "Viesnīca OAZ / Golema"], "summary": "Organizētā IMPRO ekskursija ar autobusu un laivu uz Koman ezeru un Šalas upi.", "drive": "Organizēta ekskursija, gara diena", "effort": "Vidēji", "parent_note": "Galvenā kopīgā ekskursija visiem, kas to būs rezervējuši.", "emoji": "🚤"}, {"id": "airport", "date": "09.07. ceturtdiena", "title": "Pēdējā pludmale + lidostas transfērs", "short": "09.07. Lidosta", "color": "#ec4899", "dash": "14 8", "weight": 8, "bend": 0.3, "points": ["Viesnīca OAZ / Golema", "Tirānas lidosta"], "summary": "Mierīga pēdējā diena pie jūras, mantu sakārtošana un vēlais transfērs uz Tirānas lidostu.", "drive": "Tikai grupas transfērs", "effort": "Viegli", "parent_note": "Piemērots visiem. Šo dienu nevajag sarežģīt pirms nakts lidojuma.", "emoji": "✈️"}];
+const places = {"Viesnīca OAZ / Golema": {"lat": 41.25, "lon": 19.523, "icon": "🏨"}, "Tirānas lidosta": {"lat": 41.4147, "lon": 19.7206, "icon": "✈️"}, "Kruja": {"lat": 41.5095, "lon": 19.792, "icon": "🏰"}, "Rodona rags": {"lat": 41.582, "lon": 19.445, "icon": "🌊"}, "Llogaras pāreja": {"lat": 40.196, "lon": 19.592, "icon": "⛰️"}, "Maja e Qorres zona": {"lat": 40.205, "lon": 19.604, "icon": "🥾"}, "Radhimë / Orikum": {"lat": 40.366, "lon": 19.493, "icon": "🏖️"}, "Vlorë niršanas vieta": {"lat": 40.466, "lon": 19.489, "icon": "🤿"}, "Karaburun-Sazan zona": {"lat": 40.435, "lon": 19.3, "icon": "🐠"}, "Berata": {"lat": 40.7058, "lon": 19.9522, "icon": "🏘️"}, "Bogovë ūdenskritums": {"lat": 40.564, "lon": 20.132, "icon": "💧"}, "Koman ezera piestātne": {"lat": 42.103, "lon": 19.823, "icon": "🚤"}, "Šalas upe": {"lat": 42.185, "lon": 19.779, "icon": "💦"}};
+const days = [{"id": "arrival", "date": "03.07. piektdiena", "title": "Ierašanās + Golemas pludmale", "color": "#475569", "dash": "8 8", "weight": 7, "bend": -0.2, "points": ["Tirānas lidosta", "Viesnīca OAZ / Golema"], "summary": "Ielidošana, transfērs uz Golemu, viesnīca un mierīga atpūta pie jūras.", "drive": "Tikai grupas transfērs", "effort": "Viegli", "emoji": "✈️"}, {"id": "kruje", "date": "04.07. sestdiena", "title": "Kruja + Rodona rags", "color": "#ef4444", "dash": "", "weight": 6, "bend": 0.16, "points": ["Viesnīca OAZ / Golema", "Kruja", "Rodona rags", "Viesnīca OAZ / Golema"], "summary": "Krujas vecais tirgus un pils, pēc tam jūras skati un iespējama snorkelēšana Rodona ragā.", "drive": "Vidējs pašbrauciens", "effort": "Viegli / vidēji", "emoji": "🏰"}, {"id": "llogara", "date": "05.07. svētdiena", "title": "Smags pārgājiens: Llogara / Maja e Qorres", "color": "#16a34a", "dash": "", "weight": 6, "bend": -0.12, "points": ["Viesnīca OAZ / Golema", "Llogaras pāreja", "Maja e Qorres zona", "Radhimë / Orikum", "Viesnīca OAZ / Golema"], "summary": "Kalnu pārgājiens ar lieliem skatiem. Pēc tam mierīga pelde pie Radhimë / Orikum.", "drive": "Garš pašbrauciens", "effort": "Smagi", "emoji": "⛰️"}, {"id": "scuba", "date": "06.07. pirmdiena", "title": "Niršana / snorkelēšana: Karaburun-Sazan", "color": "#0284c7", "dash": "", "weight": 6, "bend": 0.1, "points": ["Viesnīca OAZ / Golema", "Vlorë niršanas vieta", "Karaburun-Sazan zona", "Vlorë niršanas vieta", "Viesnīca OAZ / Golema"], "summary": "Iesācēju niršanas diena no Vlorë puses uz Karaburun-Sazan zonu.", "drive": "Vidēji garš pašbrauciens", "effort": "Vidēji", "emoji": "🤿"}, {"id": "berat", "date": "07.07. otrdiena", "title": "Berata + Bogovë ūdenskritums", "color": "#f59e0b", "dash": "", "weight": 6, "bend": 0.13, "points": ["Viesnīca OAZ / Golema", "Berata", "Bogovë ūdenskritums", "Viesnīca OAZ / Golema"], "summary": "Beratas vecpilsēta un pils, pusdienas, pēc tam ūdenskrituma pelde.", "drive": "Vidēji garš pašbrauciens", "effort": "Vidēji", "emoji": "🏘️"}, {"id": "koman", "date": "08.07. trešdiena", "title": "Koman ezers + Šalas upe", "color": "#7c3aed", "dash": "", "weight": 7, "bend": -0.1, "points": ["Viesnīca OAZ / Golema", "Koman ezera piestātne", "Šalas upe", "Koman ezera piestātne", "Viesnīca OAZ / Golema"], "summary": "Organizētā IMPRO ekskursija ar autobusu un laivu uz Koman ezeru un Šalas upi.", "drive": "Organizēta ekskursija, gara diena", "effort": "Vidēji", "emoji": "🚤"}, {"id": "airport", "date": "09.07. ceturtdiena", "title": "Pēdējā pludmale + lidostas transfērs", "color": "#ec4899", "dash": "14 8", "weight": 8, "bend": 0.3, "points": ["Viesnīca OAZ / Golema", "Tirānas lidosta"], "summary": "Mierīga pēdējā diena pie jūras, mantu sakārtošana un vēlais transfērs uz Tirānas lidostu.", "drive": "Tikai grupas transfērs", "effort": "Viegli", "emoji": "✈️"}];
 
-const map = L.map("map", {
-  preferCanvas: true,
-  zoomControl: true
-}).setView([41.05, 19.65], 8);
-
+const map = L.map("map", { preferCanvas: true, zoomControl: true }).setView([41.05, 19.65], 8);
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
   attribution: "&copy; OpenStreetMap contributors"
@@ -421,19 +262,28 @@ const dayLayers = new Map();
 const routeBounds = new Map();
 const dayButtons = new Map();
 
-function latLngOf(placeName) {
-  const p = places[placeName];
-  if (!p) throw new Error("Missing coordinates for: " + placeName);
+const drawer = document.getElementById("drawer");
+const menuBtn = document.getElementById("menuBtn");
+const card = document.getElementById("card");
+const hint = document.getElementById("hint");
+
+function stop(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}
+
+function latLngOf(name) {
+  const p = places[name];
+  if (!p) throw new Error("Trūkst koordināšu: " + name);
   return L.latLng(p.lat, p.lon);
 }
 
 function curvedSegment(start, end, bend, steps = 36) {
-  const lat1 = start.lat, lng1 = start.lng;
-  const lat2 = end.lat, lng2 = end.lng;
-  const midLat = (lat1 + lat2) / 2;
-  const midLng = (lng1 + lng2) / 2;
-  const dx = lng2 - lng1;
-  const dy = lat2 - lat1;
+  const lat1 = start.lat, lng1 = start.lng, lat2 = end.lat, lng2 = end.lng;
+  const midLat = (lat1 + lat2) / 2, midLng = (lng1 + lng2) / 2;
+  const dx = lng2 - lng1, dy = lat2 - lat1;
   const distance = Math.sqrt(dx * dx + dy * dy);
   const safeBend = bend * Math.min(distance, 1.4);
   const ctrlLat = midLat - dx * safeBend;
@@ -445,20 +295,17 @@ function curvedSegment(start, end, bend, steps = 36) {
     const a = (1 - t) * (1 - t);
     const b = 2 * (1 - t) * t;
     const c = t * t;
-    out.push([
-      a * lat1 + b * ctrlLat + c * lat2,
-      a * lng1 + b * ctrlLng + c * lng2
-    ]);
+    out.push([a * lat1 + b * ctrlLat + c * lat2, a * lng1 + b * ctrlLng + c * lng2]);
   }
   return out;
 }
 
-function curvedRoute(placeNames, bend) {
+function curvedRoute(points, bend) {
   const route = [];
-  for (let i = 0; i < placeNames.length - 1; i++) {
+  for (let i = 0; i < points.length - 1; i++) {
     const segment = curvedSegment(
-      latLngOf(placeNames[i]),
-      latLngOf(placeNames[i + 1]),
+      latLngOf(points[i]),
+      latLngOf(points[i + 1]),
       bend * (i % 2 === 0 ? 1 : -0.75)
     );
     if (i > 0) segment.shift();
@@ -467,42 +314,85 @@ function curvedRoute(placeNames, bend) {
   return route;
 }
 
-function routeMidpoint(latlngs) {
-  return latlngs[Math.floor(latlngs.length / 2)];
-}
-
 function allBounds() {
-  const bounds = [];
-  days.forEach(day => day.points.forEach(name => {
-    const p = places[name];
-    bounds.push([p.lat, p.lon]);
-  }));
-  return L.latLngBounds(bounds);
+  return L.latLngBounds(days.flatMap(day => day.points.map(name => latLngOf(name))));
 }
 
-function routeBoundsFor(day) {
-  return L.latLngBounds(day.points.map(name => latLngOf(name)));
+function setRoutesActive(activeId) {
+  dayLayers.forEach((layerObj, id) => {
+    const selected = !activeId || id === activeId;
+    layerObj.outline.setStyle({ opacity: selected ? 0.96 : 0.25, weight: selected ? layerObj.baseWeight + 5 : layerObj.baseWeight + 2 });
+    layerObj.line.setStyle({ opacity: selected ? 0.98 : 0.24, weight: selected ? layerObj.baseWeight : Math.max(3, layerObj.baseWeight - 2) });
+  });
+  dayButtons.forEach((btn, id) => btn.classList.toggle("active", id === activeId));
 }
 
-function addBaseMarkers() {
+function hideHint() {
+  if (hint) hint.style.display = "none";
+}
+
+function openDrawer(e) {
+  stop(e);
+  hideHint();
+  drawer.classList.add("open");
+  menuBtn.style.display = "none";
+  card.classList.remove("show");
+  setTimeout(() => map.invalidateSize(true), 250);
+}
+
+function closeDrawer(e) {
+  stop(e);
+  drawer.classList.remove("open");
+  menuBtn.style.display = "block";
+  setTimeout(() => map.invalidateSize(true), 250);
+}
+
+function closeCard(e) {
+  stop(e);
+  card.classList.remove("show");
+  setRoutesActive(null);
+  map.fitBounds(allBounds(), { padding: [45, 45] });
+}
+
+function selectDay(dayId, zoom) {
+  const day = days.find(d => d.id === dayId);
+  if (!day) return;
+
+  hideHint();
+  drawer.classList.remove("open");
+  menuBtn.style.display = "block";
+
+  setRoutesActive(dayId);
+
+  document.getElementById("cardTop").style.background = day.color;
+  document.getElementById("cardDate").textContent = day.date;
+  document.getElementById("cardTitle").textContent = `${day.emoji} ${day.title}`;
+  document.getElementById("cardSummary").textContent = day.summary;
+  document.getElementById("cardDrive").textContent = day.drive;
+  document.getElementById("cardEffort").textContent = day.effort;
+  document.getElementById("cardRoute").textContent = day.points.join(" → ");
+  card.classList.add("show");
+
+  if (zoom) map.fitBounds(routeBounds.get(dayId), { padding: [65, 65], maxZoom: 10 });
+}
+
+function addMarkers() {
   Object.entries(places).forEach(([name, p]) => {
     const isBase = name.includes("Golema");
     const isAirport = name.includes("lidosta");
 
     const marker = L.circleMarker([p.lat, p.lon], {
-      radius: isBase ? 10 : isAirport ? 8 : 5,
+      radius: isBase ? 9 : isAirport ? 7 : 5,
       color: isBase ? "#111827" : isAirport ? "#ec4899" : "#334155",
       fillColor: isBase ? "#111827" : "#ffffff",
       weight: isBase || isAirport ? 3 : 2,
       fillOpacity: isBase ? 1 : 0.95
     }).addTo(map);
 
-    marker.on("click", () => {
-      map.setView([p.lat, p.lon], 10);
-    });
+    marker.on("click", () => map.setView([p.lat, p.lon], 10));
 
-    if (isBase || isAirport || name === "Koman ezera piestātne" || name === "Berata" || name === "Vlorë niršanas tikšanās vieta") {
-      marker.bindTooltip(`${p.icon || "📍"} ${name}`, {
+    if (isBase) {
+      marker.bindTooltip("🏨 Golema — bāze", {
         permanent: true,
         direction: "top",
         offset: [0, -9],
@@ -514,18 +404,17 @@ function addBaseMarkers() {
 
 function addRoutes() {
   days.forEach(day => {
-    const group = L.layerGroup();
     const latlngs = curvedRoute(day.points, day.bend);
-    routeBounds.set(day.id, routeBoundsFor(day));
+    routeBounds.set(day.id, L.latLngBounds(day.points.map(name => latLngOf(name))));
 
-    L.polyline(latlngs, {
+    const outline = L.polyline(latlngs, {
       color: "#ffffff",
       weight: day.weight + 5,
       opacity: 0.96,
       lineCap: "round",
       lineJoin: "round",
       interactive: false
-    }).addTo(group);
+    }).addTo(map);
 
     const line = L.polyline(latlngs, {
       color: day.color,
@@ -534,89 +423,67 @@ function addRoutes() {
       dashArray: day.dash || null,
       lineCap: "round",
       lineJoin: "round"
-    }).addTo(group);
+    }).addTo(map);
 
     line.on("click", () => selectDay(day.id, true));
+    line.on("tap", () => selectDay(day.id, true));
 
-    const mid = routeMidpoint(latlngs);
-    const label = L.marker(mid, {
-      icon: L.divIcon({
-        className: "day-label",
-        html: `${day.emoji} ${day.short}`,
-        iconSize: null
-      })
-    }).addTo(group);
-
-    label.on("click", () => selectDay(day.id, true));
-
-    group.addTo(map);
-    dayLayers.set(day.id, { group, line });
+    dayLayers.set(day.id, { outline, line, baseWeight: day.weight });
   });
 }
 
 function addDayButtons() {
-  const dayList = document.getElementById("dayList");
-
+  const list = document.getElementById("dayList");
   days.forEach(day => {
     const btn = document.createElement("button");
-    btn.className = "day-btn";
+    btn.className = "day";
     btn.innerHTML = `
       <span class="stripe" style="background:${day.color}"></span>
-      <span class="day-main">
-        <span class="day-date">${day.date}</span>
-        <span class="day-name">${day.emoji} ${day.title}</span>
+      <span>
+        <span class="date">${day.date}</span>
+        <span class="name">${day.emoji} ${day.title}</span>
       </span>
-      <span class="day-arrow">›</span>
+      <span class="arrow">›</span>
     `;
-
-    btn.addEventListener("click", () => selectDay(day.id, true));
-    dayList.appendChild(btn);
+    btn.addEventListener("click", (e) => {
+      stop(e);
+      selectDay(day.id, true);
+    });
+    list.appendChild(btn);
     dayButtons.set(day.id, btn);
   });
 }
 
-function selectDay(dayId, zoomToRoute) {
-  const day = days.find(d => d.id === dayId);
-  if (!day) return;
+menuBtn.addEventListener("click", openDrawer);
+document.getElementById("drawerClose").addEventListener("click", closeDrawer);
+document.getElementById("cardClose").addEventListener("click", closeCard);
+document.getElementById("hintClose").addEventListener("click", (e) => { stop(e); hideHint(); });
 
-  dayButtons.forEach((btn, id) => btn.classList.toggle("active", id === dayId));
-
-  document.getElementById("detailTop").style.background = day.color;
-  document.getElementById("detailDate").textContent = day.date;
-  document.getElementById("detailTitle").textContent = `${day.emoji} ${day.title}`;
-  document.getElementById("detailSummary").textContent = day.summary;
-  document.getElementById("detailDrive").textContent = day.drive;
-  document.getElementById("detailEffort").textContent = day.effort;
-  document.getElementById("detailParent").textContent = day.parent_note;
-  document.getElementById("detailRoute").textContent = day.points.join(" → ");
-  document.getElementById("detailCard").classList.add("show");
-
-  if (zoomToRoute) {
-    map.fitBounds(routeBounds.get(dayId), { padding: [70, 70], maxZoom: 10 });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    drawer.classList.remove("open");
+    card.classList.remove("show");
+    menuBtn.style.display = "block";
+    setRoutesActive(null);
   }
-
-  const hint = document.getElementById("topHint");
-  if (hint) hint.style.display = "none";
-}
-
-document.getElementById("closeDetail").addEventListener("click", () => {
-  document.getElementById("detailCard").classList.remove("show");
-  dayButtons.forEach(btn => btn.classList.remove("active"));
 });
 
-addBaseMarkers();
+addMarkers();
 addRoutes();
 addDayButtons();
+map.fitBounds(allBounds(), { padding: [45, 45] });
 
-map.fitBounds(allBounds(), { padding: [55, 55] });
+// First load: day menu is open, menu button hidden. After choosing/closing, normal behaviour resumes.
+drawer.classList.add("open");
+menuBtn.style.display = "none";
 
 setTimeout(() => map.invalidateSize(true), 250);
 setTimeout(() => map.invalidateSize(true), 1000);
+setTimeout(() => {
+  if (hint) hint.style.display = "none";
+}, 8500);
 
-console.log("Albānijas ceļojuma karte ielādēta", {
-  dienas: days.length,
-  vietas: Object.keys(places).length
-});
+console.log("Albānijas karte OK", {dienas: days.length, vietas: Object.keys(places).length});
 </script>
 </body>
 </html>
