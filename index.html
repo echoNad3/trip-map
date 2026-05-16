@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Albania Trip Map — Golem Base</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f8fafc; }
+    #map { height: 100vh; width: 100vw; }
+    .legend {
+      position: absolute; z-index: 1000; bottom: 24px; left: 24px;
+      background: white; padding: 14px 16px; border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.18); max-width: 380px;
+      line-height: 1.25; font-size: 14px;
+    }
+    .legend h3 { margin: 0 0 8px 0; font-size: 16px; }
+    .legend-item { display: flex; gap: 8px; margin: 6px 0; align-items: center; }
+    .swatch { width: 22px; height: 4px; border-radius: 4px; flex: 0 0 22px; }
+    .small { color: #475569; margin-top: 8px; font-size: 12px; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<div class="legend">
+  <h3>Albania Trip Routes</h3>
+  <div id="legend-items"></div>
+  <div class="small">Approximate visual planning map, not navigation. Use Google Maps/Waze for real drive times.</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const places = {"Hotel OAZ / Golem": {"lat": 41.25, "lon": 19.523}, "Krujë": {"lat": 41.509, "lon": 19.792}, "Cape of Rodon": {"lat": 41.582, "lon": 19.445}, "Llogara Pass": {"lat": 40.196, "lon": 19.592}, "Maja e Qorres hike area": {"lat": 40.205, "lon": 19.604}, "Radhimë / Orikum swim area": {"lat": 40.366, "lon": 19.493}, "Vlorë / dive meeting area": {"lat": 40.466, "lon": 19.489}, "Karaburun-Sazan Marine Park / dive zone": {"lat": 40.435, "lon": 19.3}, "Berat": {"lat": 40.705, "lon": 19.952}, "Bogovë Waterfall area": {"lat": 40.564, "lon": 20.132}, "Koman Lake ferry area": {"lat": 42.103, "lon": 19.823}, "Shala River / Lumi i Shalës": {"lat": 42.185, "lon": 19.779}, "Tirana Airport": {"lat": 41.414, "lon": 19.72}};
+const days = [{"label": "03.07 Fri — arrival / Golem", "color": "#6b7280", "points": ["Tirana Airport", "Hotel OAZ / Golem"], "note": "Group transfer day. Chill beach/recovery."}, {"label": "04.07 Sat — Krujë + Cape of Rodon", "color": "#ef4444", "points": ["Hotel OAZ / Golem", "Krujë", "Cape of Rodon", "Hotel OAZ / Golem"], "note": "Warm-up self-drive: bazaar/castle + coast/snorkel potential."}, {"label": "05.07 Sun — hard hike / Llogara", "color": "#22c55e", "points": ["Hotel OAZ / Golem", "Llogara Pass", "Maja e Qorres hike area", "Radhimë / Orikum swim area", "Hotel OAZ / Golem"], "note": "Hard mountain day + sea cooldown. Biggest self-drive day."}, {"label": "06.07 Mon — scuba / Karaburun-Sazan", "color": "#0ea5e9", "points": ["Hotel OAZ / Golem", "Vlorë / dive meeting area", "Karaburun-Sazan Marine Park / dive zone", "Vlorë / dive meeting area", "Hotel OAZ / Golem"], "note": "Beginner/Discover Scuba day. Boat route depends on operator/weather."}, {"label": "07.07 Tue — Berat + Bogovë", "color": "#f59e0b", "points": ["Hotel OAZ / Golem", "Berat", "Bogovë Waterfall area", "Hotel OAZ / Golem"], "note": "UNESCO old town/castle + waterfall swim."}, {"label": "08.07 Wed — Koman Lake + Shala River", "color": "#8b5cf6", "points": ["Hotel OAZ / Golem", "Koman Lake ferry area", "Shala River / Lumi i Shalës", "Koman Lake ferry area", "Hotel OAZ / Golem"], "note": "Organised IMPRO excursion. Long northbound bus + boat day."}, {"label": "09.07 Thu — final beach / airport", "color": "#111827", "points": ["Hotel OAZ / Golem", "Tirana Airport"], "note": "Lazy beach day, pack, late airport transfer."}];
+
+const map = L.map('map').setView([41.05, 19.65], 8);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 18,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+Object.entries(places).forEach(([name, p]) => {
+  const isBase = name.includes("Golem");
+  const marker = L.circleMarker([p.lat, p.lon], {
+    radius: isBase ? 8 : 5,
+    color: isBase ? '#111827' : '#334155',
+    fillColor: isBase ? '#111827' : '#ffffff',
+    weight: 2,
+    fillOpacity: isBase ? 1 : 0.9
+  }).addTo(map);
+  marker.bindPopup(`<b>${name}</b>`);
+});
+
+days.forEach(day => {
+  const latlngs = day.points.map(name => [places[name].lat, places[name].lon]);
+  const line = L.polyline(latlngs, { color: day.color, weight: 4, opacity: 0.85 }).addTo(map);
+  line.bindPopup(`<b>${day.label}</b><br>${day.note}<br><br><b>Route:</b> ${day.points.join(" → ")}`);
+});
+
+const bounds = [];
+days.forEach(day => day.points.forEach(name => bounds.push([places[name].lat, places[name].lon])));
+map.fitBounds(bounds, { padding: [35, 35] });
+
+const legend = document.getElementById('legend-items');
+days.forEach(day => {
+  const div = document.createElement('div');
+  div.className = 'legend-item';
+  div.innerHTML = `<span class="swatch" style="background:${day.color}"></span><span>${day.label}</span>`;
+  legend.appendChild(div);
+});
+</script>
+</body>
+</html>
